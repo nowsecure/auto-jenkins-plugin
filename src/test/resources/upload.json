@@ -1,0 +1,55 @@
+{
+  "group": "0b9dd3a2-b3b6-11e8-9906-07a7802d43b4",
+  "application": "cda1ab20-b3a9-11e8-9249-4fd7d1f3c73a",
+  "account": "d2fc75a0-b2d8-48f5-a70d-eded118f3065",
+  "platform": "android",
+  "package": "com.apkpure.aegon",
+  "task": 1536445509394,
+  "binary": "2bd73383b2614ac946339f6c497d8c35c41e615cb8e66819ba8fa2ff36fa0486",
+  "creator": "308faa2a-b2fb-11e8-ba2d-936f5b753e54",
+  "created": "2018-09-08T22:25:09.506Z",
+  "config": {
+    "static": {
+      "urls_check": true,
+      "application_overprivileged_check": true
+    },
+    "dynamic": {
+    }
+  },
+  "status": {
+    "static": {
+      "id": ".0jltzzig5.jltzzig5.019k9",
+      "pid": "jltzzig5.019k9",
+      "emsg": "",
+      "msgs": [],
+      "pgid": "0jltzzig5",
+      "type": "ApkStatic",
+      "state": "pending",
+      "params": {
+        "app": {
+          "package": "com.apkpure.aegon",
+          "platform": "android"
+        },
+        "task": 1536445509394,
+        "user": "308faa2a-b2fb-11e8-ba2d-936f5b753e54",
+        "tests": "certificate_validity_check"
+      },
+      "result": {},
+      "created": "2018-09-08T22:25:09.422Z",
+      "modified": "2018-09-08T22:25:09.422Z"
+    },
+    "dynamic": {
+      "id": ".0jltzzig5.0jltzzig6",
+      "pid": "0jltzzig6",
+      "emsg": "",
+      "type": "ApkDynamic",
+      "state": "pending",
+      "result": {},
+      "created": "2018-09-08T22:25:09.429Z",
+      "modified": "2018-09-08T22:25:09.429Z"
+    }
+  },
+  "events": {
+    "dynamic": []
+  }
+}

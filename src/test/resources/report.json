@@ -1,0 +1,75 @@
+[
+  {
+    "kind": "static",
+    "key": "certificate_validity_check",
+    "title": "Certificate Validity Check",
+    "category": "code",
+    "summary": "\n    Checks to see if the certificate used for this application compilation is valid. Specifically, this static checks seeks to determine whether the certificate is expired or is set to expire within 30 days.\n  ",
+    "cvss": 7.5,
+    "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "affected": false,
+    "severity": "pass",
+    "description": "\n    The application's certificate was found to be valid, in that is is not set to expire in < 30 days.\n  "
+  },
+  {
+    "kind": "static",
+    "key": "debug_flag_check",
+    "title": "Debug Flag Check",
+    "category": "code",
+    "summary": "\n    Checks to determine whether the application was compiled with the `debuggable` flag enabled in the Android manifest. If the application has the `debuggable` flag enabled, it’s possible to attach a debugger to the application’s process and execute arbitrary code. The default value is \"true\" if the `debuggable` flag is not set. Debugging should be disabled before compiling an app for production.\n  ",
+    "cvss": 4.4,
+    "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:L/UI:R/S:U/C:N/I:H/A:N",
+    "affected": false,
+    "severity": "pass",
+    "description": "\n    The application was compiled with the `debuggable` flag disabled.\n  "
+  },
+  {
+    "kind": "static",
+    "key": "master_key_check",
+    "title": "Master Key Check",
+    "category": "code",
+    "summary": "\n    This checks if the application is attempting to exploit the Master Key\n    vulnerability. Android OS versions 1.6 through 4.2 do not properly check\n    cryptographic signatures and this could lead to non-approved code being run.\n    For more information see [CVE 2013-4787](http://web.nvd.nist.gov/view/vuln/detail?vulnid=CVE-2013-4787).\n    The purpose of this check to flag potentially malicious behavior within the application.\n  ",
+    "cvss": 9.3,
+    "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+    "affected": false,
+    "severity": "pass",
+    "description": "\n    The application was not found to contain two files with the same path and\n    filename, which indicates the app is not attempting to exploit the Master\n    Key vulnerability.\n  "
+  },
+  {
+    "kind": "dynamic",
+    "key": "snoop_network_hosts",
+    "title": "Network Connections",
+    "category": "network",
+    "summary": "As the application is running, we monitor the network communications in order to understand where the application is sending its data.",
+    "regulatory": {},
+    "affected": true,
+    "issue": {
+      "title": "Network Connections",
+      "description": "Network connections were detected during dynamic analysis of the application. Any unexpected connections should be flagged for further analysis, as many third party libraries, especially those linked to advertising or analytic SDKs may send data to unexpected locations.",
+      "id": "network_connections",
+      "severity": "info"
+    },
+    "severity": "info",
+    "description": "Network connections were detected during dynamic analysis of the application. Any unexpected connections should be flagged for further analysis, as many third party libraries, especially those linked to advertising or analytic SDKs may send data to unexpected locations.",
+  },
+  {
+    "kind": "dynamic",
+    "key": "sdcard_file_list",
+    "title": "Files Stored on SD Card",
+    "category": "storage",
+    "summary": "As the application is running, we monitor external storage locations to determine if the application is storing data there.",
+    "description": "Files were found to be stored in an external storage location. External storage, such as an SD Card, lacks fine-tuned permissions, which allows any app to access and read files in external storage by default. Android versions 4.4 and later do provide functionality that, under certain circumstances, allows apps to securely store data on the SD Card. More information can be found here: http://source.android.com/devices/tech/storage/",
+  },
+  {
+    "kind": "dynamic",
+    "key": "leaked_data_in_files_username",
+    "title": "Sensitive Data: Username (Local Files)",
+    "category": "storage",
+    "summary": "\n        Local application files and external storage locations are inpected for sensitive user/application data. For this check,\n        instances of the Username were searched.\n      ",
+    "cvss": 2.3,
+    "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:N",
+    "affected": false,
+    "severity": "pass",
+    "description": "Username was not recovered from the local application files, or found to be stored on external storage."
+  }
+]
