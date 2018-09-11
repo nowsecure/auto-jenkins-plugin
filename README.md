@@ -1,4 +1,4 @@
-# NS Auto Jenkins Plugin
+# NowSecure Auto Jenkins Plugin for Security Testing
 
 ## [Docs](https://docs.nowsecure.com/auto/integration-services/jenkins-integration/)
 
