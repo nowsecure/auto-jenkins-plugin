@@ -4,30 +4,30 @@
 
 	<f:section title="${%title}">
 		<f:entry title="${%apiKey}" field="apiKey">
-			<f:password />
-			<f:validateButton title="${%Test NS API Key}"
-				progress="${%Validating API Key}" method="testApiKey" with="apiKey" />
+			<f:password field="apiKey" />
 		</f:entry>
 
 		<f:entry title="${%binaryName}" field="binaryName">
-			<f:textbox />
+			<f:textbox field="binaryName" />
 		</f:entry>
+		<f:validateButton title="${%Validate}" progress="${%Validating}"
+			method="validateParams" with="apiKey,apiUrl,binaryName,group" />
 
 		<f:advanced>
 			<f:entry title="${%description}" field="description">
-				<f:textbox />
+				<f:textbox field="description" />
 			</f:entry>
 
 			<f:entry title="${%apiUrl}" field="apiUrl">
-				<f:textbox />
+				<f:textbox field="apiUrl" />
 			</f:entry>
 
 			<f:entry title="${%group}" field="group">
-				<f:textbox />
+				<f:textbox field="group" />
 			</f:entry>
 
 			<f:entry title="${%waitForResults}" field="waitForResults">
-				<f:checkbox />
+				<f:checkbox field="waitForResults" />
 			</f:entry>
 
 			<f:entry title="${%waitMinutes}" field="waitMinutes">
@@ -46,15 +46,17 @@
 						selected="${instance.waitMinutes.equals(30)? 'true':null}">30 Minutes</option>
 					<option value="60"
 						selected="${instance.waitMinutes.equals(60)? 'true':null}">1 Hour</option>
+					<option value="120"
+						selected="${instance.waitMinutes.equals(120)? 'true':null}">2 Hours</option>
 				</select>
 			</f:entry>
 
 			<f:entry title="${%breakBuildOnScore}" field="breakBuildOnScore">
-				<f:checkbox />
+				<f:checkbox field="breakBuildOnScore" />
 			</f:entry>
 
 			<f:entry title="${%scoreThreshold}" field="scoreThreshold">
-				<f:textbox />
+				<f:textbox field="scoreThreshold" />
 			</f:entry>
 
 		</f:advanced>

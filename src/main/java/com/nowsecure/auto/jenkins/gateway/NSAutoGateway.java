@@ -18,8 +18,11 @@ import hudson.FilePath;
 import hudson.model.TaskListener;
 
 public class NSAutoGateway {
+    private static final String NOWSECURE_AUTO_SECURITYTEST_UPLOADED_JSON = "/nowsecure-auto-securitytest-uploaded.json";
+    private static final String NOWSECURE_AUTO_SECURITYTEST_SCORE_JSON = "/nowsecure-auto-securitytest-score.json";
+    private static final String NOWSECURE_AUTO_SECURITYTEST_REPORT_JSON = "/nowsecure-auto-securitytest-report.json";
     private static final int ONE_MINUTE = 1000 * 60;
-
+    //
     private final NSAutoParameters params;
     private final File workspace;
     private final File artifactsDir;
@@ -53,7 +56,6 @@ public class NSAutoGateway {
             throw e;
         } catch (Exception e) {
             e.printStackTrace(listener.getLogger());
-            error("Failed to analyze security " + e);
             throw new IOException("Failed to analyze security", e);
         }
     }
@@ -61,28 +63,27 @@ public class NSAutoGateway {
     @Override
     public String toString() {
         return "nowsecure-auto-securitytest [apiUrl=" + params.getApiUrl() + ", group=" + params.getGroup()
-               + ", binaryName=" + params.getBinaryName() + ", description=" + params.getDescription()
-               + ", waitForResults=" + params.isWaitForResults() + ", waitMinutes=" + params.getWaitMinutes()
-               + ", breakBuildOnScore=" + params.isBreakBuildOnScore() + ", scoreThreshold="
-               + params.getScoreThreshold() + "]";
+               + ", binaryName=" + params.getBinaryName() + ", waitForResults=" + params.isWaitForResults()
+               + ", waitMinutes=" + params.getWaitMinutes() + ", breakBuildOnScore=" + params.isBreakBuildOnScore()
+               + ", scoreThreshold=" + params.getScoreThreshold() + "]";
     }
 
     private ReportInfo[] getReportInfos(UploadInfo uploadInfo) throws IOException, ParseException {
         String resultsUrl = buildUrl(
                 "/app/android/" + uploadInfo.getPackageId() + "/assessment/" + uploadInfo.getTask() + "/results");
-        String resultsPath = artifactsDir.getCanonicalPath() + "/nowsecure-auto-securitytest-report.json";
+        String resultsPath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_REPORT_JSON;
         String reportJson = IOHelper.get(resultsUrl, params.getApiKey().getPlainText());
         ReportInfo[] reportInfos = ReportInfo.fromJson(reportJson);
         if (reportInfos.length > 0) {
             IOHelper.save(resultsPath, reportJson);
-            info("Saved analysis report from " + resultsUrl + " to " + resultsPath);
+            info("Saved test report from " + resultsUrl + " to " + resultsPath);
         }
         return reportInfos;
     }
 
     private ScoreInfo getScoreInfo(UploadInfo uploadInfo) throws ParseException, IOException {
         String scoreUrl = buildUrl("/assessment/" + uploadInfo.getTask() + "/summary");
-        String scorePath = artifactsDir.getCanonicalPath() + "/nowsecure-auto-securitytest-score.json";
+        String scorePath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_SCORE_JSON;
         String scoreJson = IOHelper.get(scoreUrl, params.getApiKey().getPlainText());
         if (scoreJson.length() == 0) {
             return null;
@@ -96,7 +97,7 @@ public class NSAutoGateway {
         //
         long started = System.currentTimeMillis();
         for (int min = 0; min < params.getWaitMinutes(); min++) {
-            info("Waiting results for job " + uploadInfo.getTask());
+            info("waiting results for job " + uploadInfo.getTask() + " [" + getElapsedMinutes(started) + "]");
             try {
                 Thread.sleep(ONE_MINUTE);
             } catch (InterruptedException e) {
@@ -109,13 +110,16 @@ public class NSAutoGateway {
                     throw new IOException("Test failed because score (" + scoreInfo.getScore()
                                           + ") is lower than threshold " + params.getScoreThreshold());
                 }
-                long elapsed = (System.currentTimeMillis() - started) / ONE_MINUTE;
-                info("Test passed with score " + scoreInfo.getScore() + " in " + elapsed + " minutes");
+                info("test passed with score " + scoreInfo.getScore() + " in " + getElapsedMinutes(started));
                 return;
             }
         }
-        long elapsed = (System.currentTimeMillis() - started) / ONE_MINUTE;
-        throw new IOException("Timedout (" + elapsed + " minutes) while waiting for job " + uploadInfo.getTask());
+        throw new IOException(
+                "Timedout (" + getElapsedMinutes(started) + ") while waiting for job " + uploadInfo.getTask());
+    }
+
+    private String getElapsedMinutes(long started) {
+        return (System.currentTimeMillis() - started) / ONE_MINUTE + " minutes";
     }
 
     private UploadInfo upload() throws IOException, ParseException {
@@ -128,12 +132,12 @@ public class NSAutoGateway {
         }
         //
         String url = buildUrl("/build/");
-        info("Uploading binary " + file.getAbsolutePath() + " to " + url);
+        info("uploading binary " + file.getAbsolutePath() + " to " + url);
         String uploadJson = IOHelper.upload(url, params.getApiKey().getPlainText(), file.getCanonicalPath());
-        String path = artifactsDir.getCanonicalPath() + "/nowsecure-auto-securitytest-uploaded.json";
+        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_UPLOADED_JSON;
         IOHelper.save(path, uploadJson); //
         UploadInfo uploadInfo = UploadInfo.fromJson(uploadJson);
-        info("Uploaded binary with job-id " + uploadInfo.getTask() + " and saved output to " + path);
+        info("uploaded binary with job-id " + uploadInfo.getTask() + " and saved output to " + path);
         return uploadInfo;
     }
 

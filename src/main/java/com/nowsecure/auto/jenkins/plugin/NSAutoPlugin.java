@@ -37,13 +37,13 @@ import net.sf.json.JSONException;
  */
 public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters {
     private static final int DEFAULT_SCORE_THRESHOLD = 70;
-    private static final int DEFAULT_WAIT_MINUTES = 15;
+    private static final int DEFAULT_WAIT_MINUTES = 30;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";
-    private String apiUrl;
+    private String apiUrl = DEFAULT_URL;
     private String group;
     private Secret apiKey;
     private String binaryName;
-    private String description;
+    private String description = "NowSecure Auto Security Test";
     private boolean waitForResults;
     private int waitMinutes = DEFAULT_WAIT_MINUTES;
     private boolean breakBuildOnScore;
@@ -208,20 +208,25 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener).execute();
     }
 
-    // @Symbol("apiKey")
+    // @Symbol({ "apiKey", "apiUrl", "binaryName" })
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        public FormValidation doTestApiKey(@QueryParameter("apiUrl") final String apiUrl,
-                @QueryParameter("apiKey") final String apiKey)
+        public FormValidation doValidateParams(@QueryParameter("apiKey") Secret apiKey,
+                @QueryParameter("apiUrl") String apiUrl, @QueryParameter("binaryName") final String binaryName)
                 throws MessagingException, IOException, JSONException, ServletException {
+            if (binaryName == null || binaryName.length() == 0) {
+                return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingBinary());
+            }
             if (apiKey != null) {
+                if (apiUrl == null) {
+                    apiUrl = DEFAULT_URL;
+                }
                 try {
                     String url = NSAutoGateway.buildUrl("/resource/usage", new URL(apiUrl), null);
-                    IOHelper.get(url, apiKey);
+                    IOHelper.get(url, apiKey.getPlainText());
                     return FormValidation.ok();
-                } catch (IOException e) {
-                    return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey()
-                                                          + " [" + apiUrl + " / " + apiKey + "]");
+                } catch (Exception e) {
+                    return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey());
                 }
             } else {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
