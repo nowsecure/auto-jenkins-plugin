@@ -36,10 +36,10 @@ Select Configure option from Jenkins console, then select dropdown of build step
 ![Build Results](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins4.png)
 
 ## Console output examples
-[Artifacts](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_artifacts.pdf)
-[Lower score](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_lower_score.pdf)
-[Timeout](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_timeout.pdf)
-[Success](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_success.pdf)
+- [Artifacts](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_artifacts.pdf)
+- [Lower score](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_lower_score.pdf)
+- [Timeout](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_timeout.pdf)
+- [Success](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_success.pdf)
 
 ## Kick off build
 Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
