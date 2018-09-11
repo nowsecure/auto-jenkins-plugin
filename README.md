@@ -32,6 +32,9 @@ Select Configure option from Jenkins console, then select dropdown of build step
 ![Configure Step](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins3.png)
 
 
-## Kick off your build and then see results
+## Advanced configuration options
 ![Build Results](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins4.png)
+
+## Kick off build
+Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
 
