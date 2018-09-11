@@ -1,4 +1,4 @@
-# NowSecure Auto Jenkins
+# NowSecure Auto Jenkins Plugin
 
 This plugin provides the ability to send Android or iOS applications to NowSecure Auto for Mobile Application Security Testing (aka MAST)
 
