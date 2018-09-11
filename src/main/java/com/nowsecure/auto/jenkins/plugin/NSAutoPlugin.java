@@ -1,22 +1,17 @@
 package com.nowsecure.auto.jenkins.plugin;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 
-import org.json.simple.parser.ParseException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-import com.nowsecure.auto.jenkins.domain.ReportInfo;
-import com.nowsecure.auto.jenkins.domain.ScoreInfo;
-import com.nowsecure.auto.jenkins.domain.UploadInfo;
+import com.nowsecure.auto.jenkins.domain.NSAutoParameters;
+import com.nowsecure.auto.jenkins.gateway.NSAutoGateway;
 import com.nowsecure.auto.jenkins.utils.IOHelper;
 
 import hudson.Extension;
@@ -40,9 +35,7 @@ import net.sf.json.JSONException;
  * @author sbhatti
  *
  */
-public class NSAutoPlugin extends Builder implements SimpleBuildStep {
-
-    private static final int ONE_MINUTE = 1000 * 60;
+public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters {
     private static final int DEFAULT_SCORE_THRESHOLD = 70;
     private static final int DEFAULT_WAIT_MINUTES = 15;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";
@@ -70,6 +63,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.scoreThreshold = scoreThreshold;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getApiUrl()
+     */
+    @Override
     public String getApiUrl() {
         return apiUrl != null && apiUrl.length() > 0 ? apiUrl : DEFAULT_URL;
     }
@@ -79,6 +78,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.apiUrl = apiUrl;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getGroup()
+     */
+    @Override
     public String getGroup() {
         return group;
     }
@@ -88,6 +93,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.group = group;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getApiKey()
+     */
+    @Override
     public Secret getApiKey() {
         return apiKey;
     }
@@ -97,6 +108,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.apiKey = apiKey;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getBinaryName()
+     */
+    @Override
     public String getBinaryName() {
         return binaryName;
     }
@@ -106,6 +123,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.binaryName = binaryName;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getDescription()
+     */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -115,6 +138,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.description = description;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.nowsecure.auto.jenkins.plugin.NSAutoParameters#isWaitForResults()
+     */
+    @Override
     public boolean isWaitForResults() {
         return waitForResults;
     }
@@ -124,6 +154,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.waitForResults = waitForResults;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getWaitMinutes()
+     */
+    @Override
     public int getWaitMinutes() {
         return waitMinutes == 0 || waitMinutes > 100 ? DEFAULT_WAIT_MINUTES : waitMinutes;
     }
@@ -133,6 +169,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.waitMinutes = waitMinutes;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.nowsecure.auto.jenkins.plugin.NSAutoParameters#isBreakBuildOnScore()
+     */
+    @Override
     public boolean isBreakBuildOnScore() {
         return breakBuildOnScore;
     }
@@ -142,6 +185,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.breakBuildOnScore = breakBuildOnScore;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getScoreThreshold()
+     */
+    @Override
     public int getScoreThreshold() {
         return scoreThreshold == 0 || scoreThreshold > 100 ? DEFAULT_SCORE_THRESHOLD : scoreThreshold;
     }
@@ -151,125 +201,27 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         this.scoreThreshold = scoreThreshold;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
-        listener.getLogger().println(new Date() + " Executing step for " + this);
-        File artifactsDir = run.getArtifactsDir();
-        if (!artifactsDir.mkdirs()) {
-            listener.getLogger().println(new Date() + " Could not create directory " + artifactsDir);
-        }
-        try {
-            UploadInfo upload = upload(listener, artifactsDir, new File(workspace.getRemote()));
-            //
-            if (waitForResults) {
-                waitForResults(listener, artifactsDir, upload);
-            }
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (IOException e) {
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace(listener.getLogger());
-            listener.getLogger().println(new Date() + " failed to analyze security " + e);
-            throw new IOException("Failed to analyze security", e);
-        }
-    }
-
-    private ReportInfo[] getReportInfos(TaskListener listener, File artifactsDir, UploadInfo upload)
-            throws IOException, ParseException {
-        String resultsUrl = buildUrl(
-                "/app/android/" + upload.getPackageId() + "/assessment/" + upload.getTask() + "/results");
-        String resultsPath = artifactsDir.getCanonicalPath() + "/ns-report.json";
-        String reportJson = IOHelper.get(resultsUrl, apiKey.getPlainText());
-        ReportInfo[] reportInfos = ReportInfo.fromJson(reportJson);
-        if (reportInfos.length > 0) {
-            IOHelper.save(resultsPath, reportJson);
-            listener.getLogger()
-                    .println(new Date() + " Saved analysis report from " + resultsUrl + " to " + resultsPath);
-        }
-        return reportInfos;
-    }
-
-    private ScoreInfo getScoreInfo(TaskListener listener, File artifactsDir, UploadInfo upload)
-            throws ParseException, IOException {
-        String scoreUrl = buildUrl("/assessment/" + upload.getTask() + "/summary");
-        String scorePath = artifactsDir.getCanonicalPath() + "/ns-score.json";
-        String scoreJson = IOHelper.get(scoreUrl, apiKey.getPlainText());
-        if (scoreJson.length() == 0) {
-            throw new IOException("Failed to retrieve score from " + scoreUrl);
-        }
-        IOHelper.save(scorePath, scoreJson);
-        listener.getLogger().println(new Date() + " Saved score report from " + scoreUrl + " to " + scorePath);
-        return ScoreInfo.fromJson(scoreJson);
-    }
-
-    private void waitForResults(TaskListener listener, File artifactsDir, UploadInfo upload)
-            throws IOException, ParseException {
-        //
-        long started = System.currentTimeMillis();
-        for (int min = 0; min < getWaitMinutes(); min++) {
-            listener.getLogger().println(new Date() + " Waiting for results for job " + upload.getTask());
-            try {
-                Thread.sleep(ONE_MINUTE);
-            } catch (InterruptedException e) {
-                Thread.interrupted();
-            } // wait a minute
-            ReportInfo[] reportInfos = getReportInfos(listener, artifactsDir, upload);
-            if (reportInfos.length > 0) {
-                ScoreInfo scoreInfo = getScoreInfo(listener, artifactsDir, upload);
-                if (scoreInfo.getScore() < getScoreThreshold()) {
-                    throw new IOException("Analysis failed because score (" + scoreInfo.getScore()
-                                          + ") is lower than threshold " + getScoreThreshold());
-                }
-                long elapsed = (System.currentTimeMillis() - started) / ONE_MINUTE;
-                listener.getLogger().println(new Date() + " NS Security analysis passed in " + elapsed + " minutes");
-                return;
-            }
-        }
-        long elapsed = (System.currentTimeMillis() - started) / ONE_MINUTE;
-        listener.error(new Date() + " Timedout (" + elapsed + " minutes) while waiting for job " + upload.getTask());
-        throw new IOException("Timedout (" + elapsed + " minutes) while waiting for job " + upload.getTask());
-    }
-
-    private UploadInfo upload(TaskListener listener, File artifactsDir, File workspaceDir)
-            throws IOException, ParseException {
-        if (binaryName == null || binaryName.length() == 0) {
-            throw new IOException("Binary not specified");
-        }
-        File file = IOHelper.find(artifactsDir, binaryName);
-        if (file == null) {
-            file = IOHelper.find(workspaceDir, binaryName);
-        }
-        if (file == null) {
-            throw new IOException("Failed to find " + binaryName + " under " + artifactsDir);
-        }
-        //
-        String url = buildUrl("/build/");
-        listener.getLogger().println(new Date() + " Uploading binary to " + url);
-
-        String uploadJson = IOHelper.upload(url, apiKey.getPlainText(), file.getCanonicalPath());
-        String path = artifactsDir.getCanonicalPath() + "/ns-uploaded.json";
-        IOHelper.save(path, uploadJson);
-        listener.getLogger().println(new Date() + " Uploaded binary to " + url + " and saved output to " + path);
-        //
-        UploadInfo upload = UploadInfo.fromJson(uploadJson);
-        return upload;
+        new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener).execute();
     }
 
     // @Symbol("apiKey")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
         public FormValidation doTestApiKey(@QueryParameter("apiUrl") final String apiUrl,
                 @QueryParameter("apiKey") final String apiKey)
                 throws MessagingException, IOException, JSONException, ServletException {
             if (apiKey != null) {
                 try {
-                    IOHelper.get(buildUrl("/resource/usage", new URL(apiUrl), null), apiKey);
+                    String url = NSAutoGateway.buildUrl("/resource/usage", new URL(apiUrl), null);
+                    IOHelper.get(url, apiKey);
                     return FormValidation.ok();
                 } catch (IOException e) {
-                    return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey());
+                    return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey()
+                                                          + " [" + apiUrl + " / " + apiKey + "]");
                 }
             } else {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
@@ -277,7 +229,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
         }
 
         @Override
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+        public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
             return true;
         }
 
@@ -288,26 +240,4 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep {
 
     }
 
-    @Override
-    public String toString() {
-        return "nowsecure-auto-securitytest [apiUrl=" + apiUrl + ", group=" + group + ", binaryName=" + binaryName
-               + ", description=" + description + ", waitForResults=" + waitForResults + ", waitMinutes=" + waitMinutes
-               + ", breakBuildOnScore=" + breakBuildOnScore + ", scoreThreshold=" + scoreThreshold + "]";
-    }
-
-    private String buildUrl(String path) throws MalformedURLException {
-        return buildUrl(path, new URL(getApiUrl()), group);
-    }
-
-    private static String buildUrl(String path, URL api, String group) throws MalformedURLException {
-        String baseUrl = api.getProtocol() + "://" + api.getHost();
-        if (api.getPort() > 0) {
-            baseUrl += ":" + api.getPort();
-        }
-        String url = baseUrl + path;
-        if (group != null && group.length() > 0) {
-            url += "?group=" + group;
-        }
-        return url;
-    }
 }
