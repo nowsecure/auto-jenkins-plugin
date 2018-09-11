@@ -97,7 +97,7 @@ public class NSAutoGateway {
         //
         long started = System.currentTimeMillis();
         for (int min = 0; min < params.getWaitMinutes(); min++) {
-            info("waiting results for job " + uploadInfo.getTask() + " [" + getElapsedMinutes(started) + "]");
+            info("waiting results for job " + uploadInfo.getTask() + getElapsedMinutes(started));
             try {
                 Thread.sleep(ONE_MINUTE);
             } catch (InterruptedException e) {
@@ -110,16 +110,20 @@ public class NSAutoGateway {
                     throw new IOException("Test failed because score (" + scoreInfo.getScore()
                                           + ") is lower than threshold " + params.getScoreThreshold());
                 }
-                info("test passed with score " + scoreInfo.getScore() + " in " + getElapsedMinutes(started));
+                info("test passed with score " + scoreInfo.getScore() + getElapsedMinutes(started));
                 return;
             }
         }
         throw new IOException(
-                "Timedout (" + getElapsedMinutes(started) + ") while waiting for job " + uploadInfo.getTask());
+                "Timedout" + getElapsedMinutes(started) + " while waiting for job " + uploadInfo.getTask());
     }
 
     private String getElapsedMinutes(long started) {
-        return (System.currentTimeMillis() - started) / ONE_MINUTE + " minutes";
+        long min = (System.currentTimeMillis() - started) / ONE_MINUTE;
+        if (min == 0) {
+            return "";
+        }
+        return " [" + min + " minutes]";
     }
 
     private UploadInfo upload() throws IOException, ParseException {
