@@ -70,8 +70,8 @@ public class NSAutoGateway {
     }
 
     private ReportInfo[] getReportInfos(UploadInfo uploadInfo) throws IOException, ParseException {
-        String resultsUrl = buildUrl(
-                "/app/android/" + uploadInfo.getPackageId() + "/assessment/" + uploadInfo.getTask() + "/results");
+        String resultsUrl = buildUrl("/app/" + uploadInfo.getPlatform() + "/" + uploadInfo.getPackageId()
+                                     + "/assessment/" + uploadInfo.getTask() + "/results");
         String resultsPath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_REPORT_JSON;
         String reportJson = IOHelper.get(resultsUrl, params.getApiKey().getPlainText());
         ReportInfo[] reportInfos = ReportInfo.fromJson(reportJson);
