@@ -24,29 +24,29 @@ Then redeploy Jenkins.
 
 ## Create Mobile build
 
-![New Build](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins1.png)
+![New Build](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins1.png)
 
 ## Adding Plugin to your mobile build
 
 Select Configure option from Jenkins console, then select dropdown of build step and choose NS Auto Jenkins Plugin, e.g.
 
-![Build Step](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins2.png)
+![Build Step](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins2.png)
 
 ## Specify configuration parameters
 
-![Configure Step](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins3.png)
+![Configure Step](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins3.png)
 
 
 ## Advanced configuration options
 
-![Build Results](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins4.png)
+![Build Results](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins4.png)
 
 ## Console output examples
 
-- [Artifacts](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_artifacts.pdf)
-- [Lower score](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_lower_score.pdf)
-- [Timeout](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_timeout.pdf)
-- [Success](https://github.com/viaforensics/auto-jenkins-plugin/blob/master/images/jenkins_console_success.pdf)
+- [Artifacts](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins_artifacts.pdf)
+- [Lower score](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins_console_lower_score.pdf)
+- [Timeout](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins_console_timeout.pdf)
+- [Success](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins_console_success.pdf)
 
 ## Kick off build
 
