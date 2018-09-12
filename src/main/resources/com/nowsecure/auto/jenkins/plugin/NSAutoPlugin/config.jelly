@@ -10,8 +10,6 @@
 		<f:entry title="${%binaryName}" field="binaryName">
 			<f:textbox field="binaryName" />
 		</f:entry>
-		<f:validateButton title="${%Validate}" progress="${%Validating}"
-			method="validateParams" with="apiKey,apiUrl,binaryName,group" />
 
 		<f:advanced>
 			<f:entry title="${%description}" field="description">
@@ -60,6 +58,9 @@
 			</f:entry>
 
 		</f:advanced>
+
+		<f:validateButton title="${%Validate}" progress="${%Validating}"
+			method="validateParams" with="apiKey,apiUrl,binaryName,group" />
 	</f:section>
 
 </j:jelly>

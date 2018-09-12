@@ -18,6 +18,7 @@ import hudson.FilePath;
 import hudson.model.TaskListener;
 
 public class NSAutoGateway {
+    private static final String NOWSECURE_AUTO_SECURITYTEST = " nowsecure-auto-securitytest ";
     private static final String NOWSECURE_AUTO_SECURITYTEST_UPLOADED_JSON = "/nowsecure-auto-securitytest-uploaded.json";
     private static final String NOWSECURE_AUTO_SECURITYTEST_SCORE_JSON = "/nowsecure-auto-securitytest-score.json";
     private static final String NOWSECURE_AUTO_SECURITYTEST_REPORT_JSON = "/nowsecure-auto-securitytest-report.json";
@@ -162,10 +163,10 @@ public class NSAutoGateway {
     }
 
     void info(Object msg) {
-        listener.getLogger().println(new Date() + " nowsecure-auto-securitytest " + msg);
+        listener.getLogger().println(new Date() + NOWSECURE_AUTO_SECURITYTEST + msg);
     }
 
     void error(Object msg) {
-        listener.error(new Date() + " nowsecure-auto-securitytest " + msg);
+        listener.error(new Date() + NOWSECURE_AUTO_SECURITYTEST + msg);
     }
 }

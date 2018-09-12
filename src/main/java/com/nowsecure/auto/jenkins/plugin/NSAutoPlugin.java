@@ -3,9 +3,12 @@ package com.nowsecure.auto.jenkins.plugin;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -39,6 +42,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private static final int DEFAULT_SCORE_THRESHOLD = 70;
     private static final int DEFAULT_WAIT_MINUTES = 30;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";
+    @CheckForNull
     private String apiUrl = DEFAULT_URL;
     private String group;
     private Secret apiKey;
@@ -69,12 +73,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
      * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getApiUrl()
      */
     @Override
+    @Nonnull
     public String getApiUrl() {
         return apiUrl != null && apiUrl.length() > 0 ? apiUrl : DEFAULT_URL;
     }
 
     @DataBoundSetter
-    public void setApiUrl(String apiUrl) {
+    public void setApiUrl(@Nonnull String apiUrl) {
         this.apiUrl = apiUrl;
     }
 
@@ -99,12 +104,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
      * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getApiKey()
      */
     @Override
+    @Nonnull
     public Secret getApiKey() {
         return apiKey;
     }
 
     @DataBoundSetter
-    public void setApiKey(Secret apiKey) {
+    public void setApiKey(@Nonnull Secret apiKey) {
         this.apiKey = apiKey;
     }
 
@@ -114,12 +120,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
      * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getBinaryName()
      */
     @Override
+    @Nonnull
     public String getBinaryName() {
         return binaryName;
     }
 
     @DataBoundSetter
-    public void setBinaryName(String binaryName) {
+    public void setBinaryName(@Nonnull String binaryName) {
         this.binaryName = binaryName;
     }
 
@@ -208,7 +215,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener).execute();
     }
 
-    // @Symbol({ "apiKey", "apiUrl", "binaryName" })
+    @Symbol({ "apiKey", "apiUrl", "binaryName" })
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         public FormValidation doValidateParams(@QueryParameter("apiKey") Secret apiKey,
@@ -218,7 +225,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingBinary());
             }
             if (apiKey != null) {
-                if (apiUrl == null) {
+                if (apiUrl == null || apiUrl.length() == 0) {
                     apiUrl = DEFAULT_URL;
                 }
                 try {
@@ -226,7 +233,8 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
                     IOHelper.get(url, apiKey.getPlainText());
                     return FormValidation.ok();
                 } catch (Exception e) {
-                    return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey());
+                    return FormValidation.errorWithMarkup(
+                            Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey());
                 }
             } else {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
