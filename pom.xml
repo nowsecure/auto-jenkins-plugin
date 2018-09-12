@@ -8,7 +8,7 @@
         <relativePath />
     </parent>
     <groupId>io.jenkins.plugins</groupId>
-    <artifactId>nowsecure-auto</artifactId>
+    <artifactId>nowsecure-auto-security-test</artifactId>
     <version>0.1</version>
     <packaging>hpi</packaging>
     <properties>
