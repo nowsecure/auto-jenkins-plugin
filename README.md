@@ -58,5 +58,3 @@ Kick off your mobile builds and you will see the raw JSON reports and score unde
 - https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
 
 
-Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
-
