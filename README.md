@@ -54,6 +54,10 @@ Select Configure option from Jenkins console, then select dropdown of build step
 Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
 ![Console](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins9.png)
 
+## Pipeline
+Adding plugin to pipeline:
+![Pipeline](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins10.png)
+
 ## Resources
 - https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
 
