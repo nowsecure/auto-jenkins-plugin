@@ -1,12 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
 	<f:section title="${%title}">
-		<f:entry title="${%apiKey}" field="apiKey">
-			<f:password field="apiKey" />
-		</f:entry>
-
 		<f:entry title="${%binaryName}" field="binaryName">
 			<f:textbox field="binaryName" />
 		</f:entry>
@@ -56,11 +51,7 @@
 			<f:entry title="${%scoreThreshold}" field="scoreThreshold">
 				<f:textbox field="scoreThreshold" />
 			</f:entry>
-
 		</f:advanced>
-
-		<f:validateButton title="${%Validate}" progress="${%Validating}"
-			method="validateParams" with="apiKey,apiUrl,binaryName,group" />
 	</f:section>
 
 </j:jelly>

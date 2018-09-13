@@ -31,7 +31,7 @@ public class IOHelper {
     }
 
     public static File find(File parent, String name) throws IOException {
-        if (name == null || name.length() == 0) {
+        if (name == null || name.isEmpty()) {
             return null;
         }
         final File file = new File(name);

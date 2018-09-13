@@ -45,7 +45,7 @@ public class UploadInfo {
         uploadInfo.setCreator((String) jsonObject.get("creator"));
         uploadInfo.setCreated((String) jsonObject.get("created"));
 
-        if (uploadInfo.getPackageId() == null || uploadInfo.getPackageId().length() == 0) {
+        if (uploadInfo.getPackageId() == null || uploadInfo.getPackageId().isEmpty()) {
             throw new IllegalStateException("Package-id not found in JSON");
         }
         if (uploadInfo.getTask() == 0) {

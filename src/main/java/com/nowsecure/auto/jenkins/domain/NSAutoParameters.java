@@ -1,14 +1,10 @@
 package com.nowsecure.auto.jenkins.domain;
 
-import hudson.util.Secret;
-
 public interface NSAutoParameters {
 
     String getApiUrl();
 
     String getGroup();
-
-    Secret getApiKey();
 
     String getBinaryName();
 

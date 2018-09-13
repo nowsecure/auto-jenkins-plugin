@@ -18,27 +18,29 @@ import hudson.FilePath;
 import hudson.model.TaskListener;
 
 public class NSAutoGateway {
-    private static final String NOWSECURE_AUTO_SECURITYTEST = " nowsecure-auto-securitytest ";
-    private static final String NOWSECURE_AUTO_SECURITYTEST_UPLOADED_JSON = "/nowsecure-auto-securitytest-uploaded.json";
-    private static final String NOWSECURE_AUTO_SECURITYTEST_SCORE_JSON = "/nowsecure-auto-securitytest-score.json";
-    private static final String NOWSECURE_AUTO_SECURITYTEST_REPORT_JSON = "/nowsecure-auto-securitytest-report.json";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST = " nowsecure-auto-security-test ";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_JSON = "/nowsecure-auto-security-test-uploaded.json";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST_SCORE_JSON = "/nowsecure-auto-security-test-score.json";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST_REPORT_JSON = "/nowsecure-auto-security-test-report.json";
     private static final int ONE_MINUTE = 1000 * 60;
     //
     private final NSAutoParameters params;
     private final File workspace;
     private final File artifactsDir;
     private final TaskListener listener;
+    private final String apiKey;
 
-    public NSAutoGateway(NSAutoParameters params, File artifactsDir, FilePath workspace, TaskListener listener)
-            throws IOException {
+    public NSAutoGateway(NSAutoParameters params, File artifactsDir, FilePath workspace, TaskListener listener,
+            String apiKey) throws IOException {
         this.params = params;
         this.workspace = new File(workspace.getRemote());
         this.artifactsDir = artifactsDir;
         this.listener = listener;
+        this.apiKey = apiKey;
         if (!artifactsDir.mkdirs()) {
             info("Could not create directory " + artifactsDir);
         }
-        if (params.getBinaryName() == null || params.getBinaryName().length() == 0) {
+        if (params.getBinaryName() == null || params.getBinaryName().isEmpty()) {
             throw new IOException("Binary not specified");
         }
     }
@@ -63,7 +65,7 @@ public class NSAutoGateway {
 
     @Override
     public String toString() {
-        return "nowsecure-auto-securitytest [apiUrl=" + params.getApiUrl() + ", group=" + params.getGroup()
+        return "nowsecure-auto-security-test [apiUrl=" + params.getApiUrl() + ", group=" + params.getGroup()
                + ", binaryName=" + params.getBinaryName() + ", waitForResults=" + params.isWaitForResults()
                + ", waitMinutes=" + params.getWaitMinutes() + ", breakBuildOnScore=" + params.isBreakBuildOnScore()
                + ", scoreThreshold=" + params.getScoreThreshold() + "]";
@@ -72,8 +74,8 @@ public class NSAutoGateway {
     private ReportInfo[] getReportInfos(UploadInfo uploadInfo) throws IOException, ParseException {
         String resultsUrl = buildUrl("/app/" + uploadInfo.getPlatform() + "/" + uploadInfo.getPackageId()
                                      + "/assessment/" + uploadInfo.getTask() + "/results");
-        String resultsPath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_REPORT_JSON;
-        String reportJson = IOHelper.get(resultsUrl, params.getApiKey().getPlainText());
+        String resultsPath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_REPORT_JSON;
+        String reportJson = IOHelper.get(resultsUrl, apiKey);
         ReportInfo[] reportInfos = ReportInfo.fromJson(reportJson);
         if (reportInfos.length > 0) {
             IOHelper.save(resultsPath, reportJson);
@@ -84,9 +86,9 @@ public class NSAutoGateway {
 
     private ScoreInfo getScoreInfo(UploadInfo uploadInfo) throws ParseException, IOException {
         String scoreUrl = buildUrl("/assessment/" + uploadInfo.getTask() + "/summary");
-        String scorePath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_SCORE_JSON;
-        String scoreJson = IOHelper.get(scoreUrl, params.getApiKey().getPlainText());
-        if (scoreJson.length() == 0) {
+        String scorePath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_SCORE_JSON;
+        String scoreJson = IOHelper.get(scoreUrl, apiKey);
+        if (scoreJson.isEmpty()) {
             return null;
         }
         IOHelper.save(scorePath, scoreJson);
@@ -138,8 +140,8 @@ public class NSAutoGateway {
         //
         String url = buildUrl("/build/");
         info("uploading binary " + file.getAbsolutePath() + " to " + url);
-        String uploadJson = IOHelper.upload(url, params.getApiKey().getPlainText(), file.getCanonicalPath());
-        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITYTEST_UPLOADED_JSON;
+        String uploadJson = IOHelper.upload(url, apiKey, file.getCanonicalPath());
+        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_JSON;
         IOHelper.save(path, uploadJson); //
         UploadInfo uploadInfo = UploadInfo.fromJson(uploadJson);
         info("uploaded binary with job-id " + uploadInfo.getTask() + " and saved output to " + path);
@@ -163,10 +165,10 @@ public class NSAutoGateway {
     }
 
     void info(Object msg) {
-        listener.getLogger().println(new Date() + NOWSECURE_AUTO_SECURITYTEST + msg);
+        listener.getLogger().println(new Date() + NOWSECURE_AUTO_SECURITY_TEST + msg);
     }
 
     void error(Object msg) {
-        listener.error(new Date() + NOWSECURE_AUTO_SECURITYTEST + msg);
+        listener.error(new Date() + NOWSECURE_AUTO_SECURITY_TEST + msg);
     }
 }

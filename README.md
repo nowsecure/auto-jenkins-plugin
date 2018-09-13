@@ -18,7 +18,7 @@ mvn findbugs:gui
 ## Installing
 ```
 mvn clean install
-cp target/nowsecure-auto-securitytest.hpi ~/.jenkins/plugins/
+cp target/nowsecure-auto-security-test.hpi ~/.jenkins/plugins/
 ```
 Then redeploy Jenkins.
 
@@ -49,6 +49,12 @@ Select Configure option from Jenkins console, then select dropdown of build step
 - [Success](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins_console_success.pdf)
 
 ## Kick off build
+
+Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
+
+## Resources
+- https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
+
 
 Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
 

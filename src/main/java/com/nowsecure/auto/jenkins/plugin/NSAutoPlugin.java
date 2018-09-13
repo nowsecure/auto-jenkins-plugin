@@ -9,9 +9,11 @@ import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 
 import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
 import com.nowsecure.auto.jenkins.domain.NSAutoParameters;
 import com.nowsecure.auto.jenkins.gateway.NSAutoGateway;
@@ -21,12 +23,12 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
-import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONException;
 
@@ -39,13 +41,13 @@ import net.sf.json.JSONException;
  *
  */
 public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters {
+    private static final String NOWSECURE_API_KEY = "NOWSECURE_API_KEY";
     private static final int DEFAULT_SCORE_THRESHOLD = 70;
     private static final int DEFAULT_WAIT_MINUTES = 30;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";
     @CheckForNull
     private String apiUrl = DEFAULT_URL;
     private String group;
-    private Secret apiKey;
     private String binaryName;
     private String description = "NowSecure Auto Security Test";
     private boolean waitForResults;
@@ -54,11 +56,10 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private int scoreThreshold = DEFAULT_SCORE_THRESHOLD;
 
     @DataBoundConstructor
-    public NSAutoPlugin(Secret apiKey, String binaryName, String description, String apiUrl, String group,
-            boolean waitForResults, int waitMinutes, boolean breakBuildOnScore, int scoreThreshold) {
+    public NSAutoPlugin(String binaryName, String description, String apiUrl, String group, boolean waitForResults,
+            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold) {
         this.apiUrl = apiUrl;
         this.group = group;
-        this.apiKey = apiKey;
         this.binaryName = binaryName;
         this.description = description;
         this.waitForResults = waitForResults;
@@ -98,20 +99,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.group = group;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getApiKey()
-     */
-    @Override
-    @Nonnull
-    public Secret getApiKey() {
-        return apiKey;
-    }
-
-    @DataBoundSetter
-    public void setApiKey(@Nonnull Secret apiKey) {
-        this.apiKey = apiKey;
+    static String getApiCredentials() {
+        String value = System.getenv("apiKey");
+        if (value == null || value.isEmpty()) {
+            throw new RuntimeException(System.getenv().toString());
+        } else {
+            return value;
+        }
     }
 
     /*
@@ -210,31 +204,37 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
     @SuppressWarnings("deprecation")
     @Override
+    @POST
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
-        new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener).execute();
+        String apiKey = run.getEnvironment().get("apiKey");
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new IllegalStateException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
+        }
+        new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener, apiKey).execute();
     }
 
     @Symbol({ "apiKey", "apiUrl", "binaryName" })
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        public FormValidation doValidateParams(@QueryParameter("apiKey") Secret apiKey,
-                @QueryParameter("apiUrl") String apiUrl, @QueryParameter("binaryName") final String binaryName)
+        public FormValidation doValidateParams(@QueryParameter("apiKey") String apiKey,
+                @QueryParameter("apiUrl") String apiUrl, @QueryParameter("binaryName") final String binaryName,
+                @SuppressWarnings("rawtypes") @AncestorInPath AbstractProject project,
+                @AncestorInPath final Job<?, ?> owner)
                 throws MessagingException, IOException, JSONException, ServletException {
-            if (binaryName == null || binaryName.length() == 0) {
+            if (binaryName == null || binaryName.isEmpty()) {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingBinary());
             }
             if (apiKey != null) {
-                if (apiUrl == null || apiUrl.length() == 0) {
+                if (apiUrl == null || apiUrl.isEmpty()) {
                     apiUrl = DEFAULT_URL;
                 }
                 try {
                     String url = NSAutoGateway.buildUrl("/resource/usage", new URL(apiUrl), null);
-                    IOHelper.get(url, apiKey.getPlainText());
+                    IOHelper.get(url, apiKey); // .getPlainText());
                     return FormValidation.ok();
                 } catch (Exception e) {
-                    return FormValidation.errorWithMarkup(
-                            Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey());
+                    return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_invalidKey());
                 }
             } else {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
