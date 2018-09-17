@@ -36,8 +36,6 @@ Adding plugin to pipeline:
 
 ![Pipeline Config](https://github.com/jenkinsci/nowsecure-auto-security-test-plugin/blob/master/images/jenkins11.png)
 
-![Pipeline Script](https://github.com/jenkinsci/nowsecure-auto-security-test-plugin/blob/master/images/jenkins12.png)
-
 Sample pipeline script
 ```
 pipeline {
@@ -55,8 +53,15 @@ pipeline {
 }
 ```
 
+## Artifacts
+This plugin generates following artifacts:
+![Artifacts](https://github.com/jenkinsci/nowsecure-auto-security-test-plugin/blob/master/images/jenkins12.png)
+ - nowsecure-auto-security-test-uploaded.json - stores metadata in JSON format after mobile file is uploaded
+ - nowsecure-auto-security-test-report.json - stores raw security analysis in JSON format
+ - nowsecure-auto-security-test-score.json - stores raw security score in JSON format
+
 ## Resources
-See https://wiki.jenkins.io/display/JENKINS/Hosting+Plugins
+- https://wiki.jenkins.io/display/JENKINS/Hosting+Plugins
 - https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
 
 

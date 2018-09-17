@@ -23,7 +23,6 @@ mvn release:prepare release:perform -Dusername=... -Dpassword=...
 ```
 
 ## Resources
-See https://wiki.jenkins.io/display/JENKINS/Hosting+Plugins
+- https://wiki.jenkins.io/display/JENKINS/Hosting+Plugins
 - https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
-
 
