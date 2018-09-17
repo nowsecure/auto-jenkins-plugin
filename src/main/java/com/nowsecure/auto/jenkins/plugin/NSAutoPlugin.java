@@ -54,6 +54,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private int waitMinutes = DEFAULT_WAIT_MINUTES;
     private boolean breakBuildOnScore;
     private int scoreThreshold = DEFAULT_SCORE_THRESHOLD;
+    private String apiKey;
 
     @DataBoundConstructor
     public NSAutoPlugin(String binaryName, String description, String apiUrl, String group, boolean waitForResults,
@@ -99,13 +100,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.group = group;
     }
 
-    static String getApiCredentials() {
-        String value = System.getenv("apiKey");
-        if (value == null || value.isEmpty()) {
-            throw new RuntimeException(System.getenv().toString());
-        } else {
-            return value;
-        }
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    @DataBoundSetter
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
     /*
@@ -207,11 +208,14 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     @POST
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
-        String apiKey = run.getEnvironment().get("apiKey");
-        if (apiKey == null || apiKey.isEmpty()) {
+        String token = run.getEnvironment().get("apiKey");
+        if (token == null || token.isEmpty()) {
+            token = apiKey;
+        }
+        if (token == null || token.isEmpty()) {
             throw new IllegalStateException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
         }
-        new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener, apiKey).execute();
+        new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener, token).execute();
     }
 
     @Symbol({ "apiKey", "apiUrl", "binaryName" })
