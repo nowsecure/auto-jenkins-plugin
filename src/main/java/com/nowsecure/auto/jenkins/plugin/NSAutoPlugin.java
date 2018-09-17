@@ -257,4 +257,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
     }
 
+    @Override
+    public String toString() {
+        return "NSAutoPlugin [apiUrl=" + apiUrl + ", group=" + group + ", binaryName=" + binaryName
+               + ", waitForResults=" + waitForResults + ", waitMinutes=" + waitMinutes + ", breakBuildOnScore="
+               + breakBuildOnScore + ", scoreThreshold=" + scoreThreshold + ", apiKey="
+               + (apiKey != null ? "****" : "undefined") + "]";
+    }
+
 }
