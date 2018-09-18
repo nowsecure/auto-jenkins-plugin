@@ -19,6 +19,7 @@ import com.nowsecure.auto.jenkins.domain.NSAutoParameters;
 import com.nowsecure.auto.jenkins.gateway.NSAutoGateway;
 import com.nowsecure.auto.jenkins.utils.IOHelper;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -224,7 +225,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             token = apiKey;
         }
         if (token == null || token.isEmpty()) {
-            throw new IllegalStateException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
+            throw new AbortException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
         }
         new NSAutoGateway(this, run.getArtifactsDir(), workspace, listener, token).execute();
     }

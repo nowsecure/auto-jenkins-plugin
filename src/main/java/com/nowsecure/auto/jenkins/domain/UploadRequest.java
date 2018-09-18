@@ -1,8 +1,12 @@
 package com.nowsecure.auto.jenkins.domain;
 
+import java.io.IOException;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import hudson.AbortException;
 
 public class UploadRequest extends MetadataRequest {
     private boolean analyzed;
@@ -10,14 +14,14 @@ public class UploadRequest extends MetadataRequest {
     public UploadRequest() {
     }
 
-    public static UploadRequest fromJson(String json) throws ParseException {
+    public static UploadRequest fromJson(String json) throws ParseException, IOException {
         JSONParser parser = new JSONParser();
         JSONObject jsonObject = (JSONObject) parser.parse(json);
         // for error message
         String name = (String) jsonObject.get("name");
         String message = (String) jsonObject.get("message");
         if (name != null && message != null) {
-            throw new RuntimeException(name + " " + message);
+            throw new AbortException(name + " " + message);
         }
         //
         UploadRequest request = new UploadRequest();
@@ -34,10 +38,10 @@ public class UploadRequest extends MetadataRequest {
         }
         //
         if (request.getPackageId() == null || request.getPackageId().isEmpty()) {
-            throw new IllegalStateException("Package-id not found in JSON");
+            throw new AbortException("Package-id not found in JSON");
         }
         if (request.getBinary() == null || request.getBinary().isEmpty()) {
-            throw new IllegalStateException("Digest not found in JSON");
+            throw new AbortException("Digest not found in JSON");
         }
         return request;
     }

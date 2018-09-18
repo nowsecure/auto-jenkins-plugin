@@ -15,6 +15,7 @@ import com.nowsecure.auto.jenkins.domain.ScoreInfo;
 import com.nowsecure.auto.jenkins.domain.UploadRequest;
 import com.nowsecure.auto.jenkins.utils.IOHelper;
 
+import hudson.AbortException;
 import hudson.FilePath;
 import hudson.model.TaskListener;
 
@@ -46,7 +47,7 @@ public class NSAutoGateway {
             info("Could not create directory " + artifactsDir);
         }
         if (params.getBinaryName() == null || params.getBinaryName().isEmpty()) {
-            throw new IOException("Binary not specified");
+            throw new AbortException("Filename is not specified");
         }
     }
 
@@ -66,7 +67,7 @@ public class NSAutoGateway {
             throw e;
         } catch (Exception e) {
             e.printStackTrace(listener.getLogger());
-            throw new IOException("Failed to analyze security", e);
+            throw new AbortException("Failed to run security test due to " + e);
         }
     }
 
@@ -113,12 +114,12 @@ public class NSAutoGateway {
             IOHelper.save(path, json); //
             info("saved preflight results to " + path);
             if (json.contains("error")) {
-                throw new IOException("Preflight failed");
+                throw new AbortException("Preflight failed");
             }
             return request;
         } catch (IOException e) {
             String msg = e.getMessage().contains("401 for URL") ? "" : " due to " + e.getMessage();
-            throw new IOException("Failed to execute preflight for " + request.getBinary() + msg);
+            throw new AbortException("Failed to execute preflight for " + request.getBinary() + msg);
         }
     }
 
@@ -173,14 +174,14 @@ public class NSAutoGateway {
             if (scoreInfo != null) {
                 getReportInfos(uploadInfo);
                 if (scoreInfo.getScore() < params.getScoreThreshold()) {
-                    throw new IOException("Test failed because score (" + scoreInfo.getScore()
-                                          + ") is lower than threshold " + params.getScoreThreshold());
+                    throw new AbortException("Test failed because score (" + scoreInfo.getScore()
+                                             + ") is lower than threshold " + params.getScoreThreshold());
                 }
                 info("test passed with score " + scoreInfo.getScore() + getElapsedMinutes(started));
                 return;
             }
         }
-        throw new IOException(
+        throw new AbortException(
                 "Timedout" + getElapsedMinutes(started) + " while waiting for job " + uploadInfo.getTask());
     }
 
@@ -190,7 +191,7 @@ public class NSAutoGateway {
             file = IOHelper.find(workspace, params.getBinaryName());
         }
         if (file == null) {
-            throw new IOException("Failed to find " + params.getBinaryName() + " under " + artifactsDir);
+            throw new AbortException("Failed to find " + params.getBinaryName() + " under " + artifactsDir);
         }
         return file;
     }

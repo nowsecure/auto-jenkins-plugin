@@ -1,5 +1,6 @@
 package com.nowsecure.auto.jenkins.domain;
 
+import java.io.IOException;
 import java.io.StringWriter;
 
 import org.json.simple.JSONArray;
@@ -7,6 +8,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
+
+import hudson.AbortException;
 
 /**
  * ReportInfo encapsulates JSON response from raw analysis report
@@ -18,7 +21,6 @@ public class ReportInfo {
     private String kind;
     private String key;
     private String title;
-    private String category;
     private String summary;
     private double cvss;
     private String cvssVector;
@@ -29,7 +31,10 @@ public class ReportInfo {
     private Object issues;
     private Object context;
 
-    public static ReportInfo[] fromJson(String json) throws ParseException {
+    public static ReportInfo[] fromJson(String json) throws ParseException, IOException {
+        if (json.startsWith("{")) {
+            throw new AbortException("Failed to find test report " + json);
+        }
         JSONParser parser = new JSONParser();
         JSONArray jsonArray = (JSONArray) parser.parse(json);
         //
@@ -40,13 +45,14 @@ public class ReportInfo {
             reportInfo.setKind((String) jsonObject.get("kind"));
             reportInfo.setKey((String) jsonObject.get("key"));
             reportInfo.setTitle((String) jsonObject.get("title"));
-            reportInfo.setCategory((String) jsonObject.get("category"));
             reportInfo.setSummary((String) jsonObject.get("summary"));
             if (jsonObject.get("cvss") != null) {
                 reportInfo.setCvss(((Number) jsonObject.get("cvss")).doubleValue());
             }
             reportInfo.setCvssVector((String) jsonObject.get("cvss_vector"));
-            reportInfo.setAffected((Boolean) jsonObject.get("affected"));
+            if (jsonObject.get("affected") != null) {
+                reportInfo.setAffected((Boolean) jsonObject.get("affected"));
+            }
             reportInfo.setSeverity((String) jsonObject.get("severity"));
             reportInfo.setDescription((String) jsonObject.get("description"));
             reportInfo.setRegulatory(jsonObject.get("regulatory"));
@@ -81,14 +87,6 @@ public class ReportInfo {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 
     public String getSummary() {
