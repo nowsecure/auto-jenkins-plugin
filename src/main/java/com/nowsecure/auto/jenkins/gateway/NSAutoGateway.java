@@ -112,6 +112,9 @@ public class NSAutoGateway {
             String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_PREFLIGHT_JSON;
             IOHelper.save(path, json); //
             info("Saved preflight results to " + path);
+            if (json.contains("error")) {
+                throw new IOException("Preflight failed");
+            }
             return request;
         } catch (IOException e) {
             String msg = e.getMessage().contains("401 for URL") ? "" : " due to " + e.getMessage();
@@ -160,7 +163,7 @@ public class NSAutoGateway {
         //
         long started = System.currentTimeMillis();
         for (int min = 0; min < params.getWaitMinutes(); min++) {
-            info("waiting results for job " + uploadInfo.getTask() + getElapsedMinutes(started));
+            info("waiting test results for job " + uploadInfo.getTask() + getElapsedMinutes(started));
             try {
                 Thread.sleep(ONE_MINUTE);
             } catch (InterruptedException e) {
