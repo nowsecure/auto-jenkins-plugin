@@ -58,7 +58,7 @@ This plugin generates following artifacts:
 ![Artifacts](https://github.com/jenkinsci/nowsecure-auto-security-test-plugin/blob/master/images/jenkins12.png)
  - nowsecure-auto-security-test-uploaded-binary.json - stores metadata in json format after mobile file is uploaded.
  - nowsecure-auto-security-test-preflight.json - stores output json when request of preflight is submitted.
- - nowsecure-auto-security-test-assessment-request.json	- stores output json when request of security assessment is submitted.
+ - nowsecure-auto-security-test-request.json - stores output json when request of security test is submitted.
  - nowsecure-auto-security-test-report.json	- stores output json when security analysis is completed.
  - nowsecure-auto-security-test-score.json	- stores output json for overall score of security test.
 
