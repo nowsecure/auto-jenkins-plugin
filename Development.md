@@ -34,3 +34,4 @@ mvn release:prepare release:perform -Dusername=... -Dpassword=...
 - https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
 - https://github.com/jenkins-infra/repository-permissions-updater
 - https://wiki.jenkins.io/display/JENKINS/Plugins
+- https://repo.jenkins-ci.org/releases/io/jenkins/plugins/nowsecure-auto-security-test/0.1/
