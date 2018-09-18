@@ -85,6 +85,22 @@ public class IOHelper {
         return json.trim();
     }
 
+    public static String post(String uri, String apiKey) throws IOException {
+        URL url = new URL(uri);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod(POST);
+        con.setRequestProperty(CONTENT_TYPE, "application/json");
+        con.setRequestProperty(AUTHORIZATION, "Bearer " + apiKey);
+        con.setConnectTimeout(TIMEOUT);
+        con.setReadTimeout(TIMEOUT);
+        con.setInstanceFollowRedirects(false);
+        InputStream in = con.getInputStream();
+        String json = new String(load(in), StandardCharsets.UTF_8);
+        in.close();
+        con.disconnect();
+        return json;
+    }
+
     public static String upload(String uri, String apiKey, String file) throws IOException {
         URL url = new URL(uri);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();

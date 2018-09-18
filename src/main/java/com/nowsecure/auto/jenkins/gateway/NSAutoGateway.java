@@ -8,18 +8,23 @@ import java.util.Date;
 
 import org.json.simple.parser.ParseException;
 
+import com.nowsecure.auto.jenkins.domain.AssessmentRequest;
 import com.nowsecure.auto.jenkins.domain.NSAutoParameters;
 import com.nowsecure.auto.jenkins.domain.ReportInfo;
 import com.nowsecure.auto.jenkins.domain.ScoreInfo;
-import com.nowsecure.auto.jenkins.domain.UploadInfo;
+import com.nowsecure.auto.jenkins.domain.UploadRequest;
 import com.nowsecure.auto.jenkins.utils.IOHelper;
 
 import hudson.FilePath;
 import hudson.model.TaskListener;
 
 public class NSAutoGateway {
+    private static final String BINARY_URL_SUFFIX = "/binary/";
+    private static final String BUILD_URL_SUFFIX = "/build/";
     private static final String NOWSECURE_AUTO_SECURITY_TEST = " nowsecure-auto-security-test ";
-    private static final String NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_JSON = "/nowsecure-auto-security-test-uploaded.json";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_BINARY_JSON = "/nowsecure-auto-security-test-uploaded-binary.json";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_ASSESS_REQ_JSON = "/nowsecure-auto-security-test-assessment-request.json";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST_PREFLIGHT_JSON = "/nowsecure-auto-security-test-preflight.json";
     private static final String NOWSECURE_AUTO_SECURITY_TEST_SCORE_JSON = "/nowsecure-auto-security-test-score.json";
     private static final String NOWSECURE_AUTO_SECURITY_TEST_REPORT_JSON = "/nowsecure-auto-security-test-report.json";
     private static final int ONE_MINUTE = 1000 * 60;
@@ -48,10 +53,12 @@ public class NSAutoGateway {
     public void execute() throws InterruptedException, IOException {
         info("Executing step for " + this);
         try {
-            UploadInfo uploadInfo = upload();
+            AssessmentRequest request = params.isUseBuildEndpoint() ? uploadBuild()
+                    : triggerAssessment(preflight(uploadBinary()));
+
             //
             if (params.isWaitForResults()) {
-                waitForResults(uploadInfo);
+                waitForResults(request);
             }
         } catch (RuntimeException e) {
             throw e;
@@ -71,7 +78,60 @@ public class NSAutoGateway {
                + ", scoreThreshold=" + params.getScoreThreshold() + "]";
     }
 
-    private ReportInfo[] getReportInfos(UploadInfo uploadInfo) throws IOException, ParseException {
+    private AssessmentRequest uploadBuild() throws IOException, ParseException {
+        File file = getBinaryFile();
+        //
+        String url = buildUrl(BUILD_URL_SUFFIX);
+        info("uploading binary " + file.getAbsolutePath() + " to " + url + " for assessment analysis");
+        String json = IOHelper.upload(url, apiKey, file.getCanonicalPath());
+        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_ASSESS_REQ_JSON;
+        IOHelper.save(path, json); //
+        AssessmentRequest request = AssessmentRequest.fromJson(json);
+        info("uploaded binary with job-id " + request.getTask() + " and saved output to " + path);
+        return request;
+    }
+
+    private UploadRequest uploadBinary() throws IOException, ParseException {
+        File file = getBinaryFile();
+        //
+        String url = buildUrl(BINARY_URL_SUFFIX);
+        info("uploading binary " + file.getAbsolutePath() + " to " + url);
+        String json = IOHelper.upload(url, apiKey, file.getCanonicalPath());
+        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_BINARY_JSON;
+        IOHelper.save(path, json); //
+        UploadRequest request = UploadRequest.fromJson(json);
+        info("uploaded binary with digest " + request.getBinary() + " and saved output to " + path);
+        return request;
+    }
+
+    private UploadRequest preflight(UploadRequest request) throws IOException, ParseException {
+        String url = buildUrl("/binary/" + request.getBinary() + "/analysis");
+        info("Executing preflight for digest " + request.getBinary() + " to " + url);
+        try {
+            String json = IOHelper.get(url, apiKey);
+            String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_PREFLIGHT_JSON;
+            IOHelper.save(path, json); //
+            info("Saved preflight results to " + path);
+            return request;
+        } catch (IOException e) {
+            String msg = e.getMessage().contains("401 for URL") ? "" : " due to " + e.getMessage();
+            throw new IOException("Failed to execute preflight for " + request.getBinary() + msg);
+        }
+    }
+
+    private AssessmentRequest triggerAssessment(UploadRequest uploadRequest) throws IOException, ParseException {
+        String url = buildUrl(
+                "/app/" + uploadRequest.getPlatform() + "/" + uploadRequest.getPackageId() + "/assessment/");
+        String json = IOHelper.post(url, apiKey);
+        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_ASSESS_REQ_JSON;
+        IOHelper.save(path, json); //
+        AssessmentRequest request = AssessmentRequest.fromJson(json);
+        info("Triggered assessment for digest " + uploadRequest.getBinary() + " to " + url + " and saved output to "
+             + path);
+        return request;
+    }
+
+    private ReportInfo[] getReportInfos(AssessmentRequest uploadInfo) throws IOException, ParseException {
         String resultsUrl = buildUrl("/app/" + uploadInfo.getPlatform() + "/" + uploadInfo.getPackageId()
                                      + "/assessment/" + uploadInfo.getTask() + "/results");
         String resultsPath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_REPORT_JSON;
@@ -84,7 +144,7 @@ public class NSAutoGateway {
         return reportInfos;
     }
 
-    private ScoreInfo getScoreInfo(UploadInfo uploadInfo) throws ParseException, IOException {
+    private ScoreInfo getScoreInfo(AssessmentRequest uploadInfo) throws ParseException, IOException {
         String scoreUrl = buildUrl("/assessment/" + uploadInfo.getTask() + "/summary");
         String scorePath = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_SCORE_JSON;
         String scoreJson = IOHelper.get(scoreUrl, apiKey);
@@ -96,7 +156,7 @@ public class NSAutoGateway {
         return ScoreInfo.fromJson(scoreJson);
     }
 
-    private void waitForResults(UploadInfo uploadInfo) throws IOException, ParseException {
+    private void waitForResults(AssessmentRequest uploadInfo) throws IOException, ParseException {
         //
         long started = System.currentTimeMillis();
         for (int min = 0; min < params.getWaitMinutes(); min++) {
@@ -121,15 +181,7 @@ public class NSAutoGateway {
                 "Timedout" + getElapsedMinutes(started) + " while waiting for job " + uploadInfo.getTask());
     }
 
-    private String getElapsedMinutes(long started) {
-        long min = (System.currentTimeMillis() - started) / ONE_MINUTE;
-        if (min == 0) {
-            return "";
-        }
-        return " [" + min + " minutes]";
-    }
-
-    private UploadInfo upload() throws IOException, ParseException {
+    private File getBinaryFile() throws IOException {
         File file = IOHelper.find(artifactsDir, params.getBinaryName());
         if (file == null) {
             file = IOHelper.find(workspace, params.getBinaryName());
@@ -137,15 +189,15 @@ public class NSAutoGateway {
         if (file == null) {
             throw new IOException("Failed to find " + params.getBinaryName() + " under " + artifactsDir);
         }
-        //
-        String url = buildUrl("/build/");
-        info("uploading binary " + file.getAbsolutePath() + " to " + url);
-        String uploadJson = IOHelper.upload(url, apiKey, file.getCanonicalPath());
-        String path = artifactsDir.getCanonicalPath() + NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_JSON;
-        IOHelper.save(path, uploadJson); //
-        UploadInfo uploadInfo = UploadInfo.fromJson(uploadJson);
-        info("uploaded binary with job-id " + uploadInfo.getTask() + " and saved output to " + path);
-        return uploadInfo;
+        return file;
+    }
+
+    private String getElapsedMinutes(long started) {
+        long min = (System.currentTimeMillis() - started) / ONE_MINUTE;
+        if (min == 0) {
+            return "";
+        }
+        return " [" + min + " minutes]";
     }
 
     private String buildUrl(String path) throws MalformedURLException {
@@ -159,7 +211,12 @@ public class NSAutoGateway {
         }
         String url = baseUrl + path;
         if (group != null && group.length() > 0) {
-            url += "?group=" + group;
+            if (url.contains("?")) {
+                url += "&";
+            } else {
+                url += "?";
+            }
+            url += "group=" + group;
         }
         return url;
     }

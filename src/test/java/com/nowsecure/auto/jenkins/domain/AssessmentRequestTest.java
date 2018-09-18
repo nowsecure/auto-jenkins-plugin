@@ -10,16 +10,16 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.nowsecure.auto.jenkins.domain.UploadInfo;
+import com.nowsecure.auto.jenkins.domain.AssessmentRequest;
 
-public class UploadInfoTest {
+public class AssessmentRequestTest {
 
     @Test
     public void testParse() throws URISyntaxException, IOException, ParseException {
         Path path = Paths.get(getClass().getClassLoader().getResource("upload.json").toURI());
         byte[] fileBytes = Files.readAllBytes(path);
         String json = new String(fileBytes);
-        UploadInfo info = UploadInfo.fromJson(json);
+        AssessmentRequest info = AssessmentRequest.fromJson(json);
         Assert.assertEquals("d2fc75a0-b2d8-48f5-a70d-eded118f3065", info.getAccount());
     }
 

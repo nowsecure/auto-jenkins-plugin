@@ -55,10 +55,11 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private boolean breakBuildOnScore;
     private int scoreThreshold = DEFAULT_SCORE_THRESHOLD;
     private String apiKey;
+    private boolean useBuildEndpoint;
 
     @DataBoundConstructor
     public NSAutoPlugin(String binaryName, String description, String apiUrl, String group, boolean waitForResults,
-            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold) {
+            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold, boolean useBuildEndpoint) {
         this.apiUrl = apiUrl;
         this.group = group;
         this.binaryName = binaryName;
@@ -67,6 +68,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.waitMinutes = waitMinutes;
         this.breakBuildOnScore = breakBuildOnScore;
         this.scoreThreshold = scoreThreshold;
+        this.useBuildEndpoint = useBuildEndpoint;
     }
 
     /*
@@ -201,6 +203,15 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     @DataBoundSetter
     public void setScoreThreshold(int scoreThreshold) {
         this.scoreThreshold = scoreThreshold;
+    }
+
+    public boolean isUseBuildEndpoint() {
+        return useBuildEndpoint;
+    }
+
+    @DataBoundSetter
+    public void setUseBuildEndpoint(boolean useBuildEndpoint) {
+        this.useBuildEndpoint = useBuildEndpoint;
     }
 
     @SuppressWarnings("deprecation")

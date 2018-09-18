@@ -18,4 +18,6 @@ public interface NSAutoParameters {
 
     int getScoreThreshold();
 
+    boolean isUseBuildEndpoint();
+
 }
