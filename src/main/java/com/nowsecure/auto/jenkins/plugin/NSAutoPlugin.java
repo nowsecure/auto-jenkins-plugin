@@ -42,7 +42,6 @@ import net.sf.json.JSONException;
  *
  */
 public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters {
-    private static final String NOWSECURE_API_KEY = "NOWSECURE_API_KEY";
     private static final int DEFAULT_SCORE_THRESHOLD = 70;
     private static final int DEFAULT_WAIT_MINUTES = 30;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";

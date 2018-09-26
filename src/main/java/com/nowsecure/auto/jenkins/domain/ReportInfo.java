@@ -1,13 +1,11 @@
 package com.nowsecure.auto.jenkins.domain;
 
 import java.io.IOException;
-import java.io.StringWriter;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.yaml.snakeyaml.Yaml;
 
 import hudson.AbortException;
 
@@ -159,14 +157,6 @@ public class ReportInfo {
 
     public void setContext(Object context) {
         this.context = context;
-    }
-
-    @Override
-    public String toString() {
-        Yaml yaml = new Yaml();
-        StringWriter writer = new StringWriter();
-        yaml.dump(this, writer);
-        return writer.toString();
     }
 
 }

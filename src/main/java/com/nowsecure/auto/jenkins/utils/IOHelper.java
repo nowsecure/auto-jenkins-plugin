@@ -17,9 +17,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.function.BiPredicate;
 
 public class IOHelper {
+    private static final String USER_AGENT = "User-Agent";
     private static final String GET = "GET";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String AUTHORIZATION = "Authorization";
@@ -28,6 +30,19 @@ public class IOHelper {
 
     public static byte[] load(String file) throws IOException {
         return Files.readAllBytes(Paths.get(file));
+    }
+
+    public static String getVersion() {
+        try {
+            InputStream in = IOHelper.class.getResourceAsStream("/version.txt");
+            Scanner scanner = new Scanner(in, "UTF-8");
+            String version = scanner.next();
+            scanner.close();
+            in.close();
+            return version;
+        } catch (RuntimeException | IOException e) {
+            return "1.0-SNAPSHOT";
+        }
     }
 
     public static File find(File parent, String name) throws IOException {
@@ -73,11 +88,7 @@ public class IOHelper {
         URL url = new URL(uri);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod(GET);
-        con.setRequestProperty(CONTENT_TYPE, "application/json");
-        con.setRequestProperty(AUTHORIZATION, "Bearer " + apiKey);
-        con.setConnectTimeout(TIMEOUT);
-        con.setReadTimeout(TIMEOUT);
-        con.setInstanceFollowRedirects(false);
+        initConnection(apiKey, con);
         InputStream in = con.getInputStream();
         String json = new String(load(in), StandardCharsets.UTF_8);
         in.close();
@@ -89,11 +100,7 @@ public class IOHelper {
         URL url = new URL(uri);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod(POST);
-        con.setRequestProperty(CONTENT_TYPE, "application/json");
-        con.setRequestProperty(AUTHORIZATION, "Bearer " + apiKey);
-        con.setConnectTimeout(TIMEOUT);
-        con.setReadTimeout(TIMEOUT);
-        con.setInstanceFollowRedirects(false);
+        initConnection(apiKey, con);
         InputStream in = con.getInputStream();
         String json = new String(load(in), StandardCharsets.UTF_8);
         in.close();
@@ -105,11 +112,7 @@ public class IOHelper {
         URL url = new URL(uri);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod(POST);
-        con.setRequestProperty(CONTENT_TYPE, "application/json");
-        con.setRequestProperty(AUTHORIZATION, "Bearer " + apiKey);
-        con.setConnectTimeout(TIMEOUT);
-        con.setReadTimeout(TIMEOUT);
-        con.setInstanceFollowRedirects(false);
+        initConnection(apiKey, con);
         con.setDoOutput(true);
         OutputStream out = con.getOutputStream();
         byte[] binary = load(file);
@@ -123,4 +126,12 @@ public class IOHelper {
         return json;
     }
 
+    private static void initConnection(String apiKey, HttpURLConnection con) {
+        con.setRequestProperty(CONTENT_TYPE, "application/json");
+        con.setRequestProperty(AUTHORIZATION, "Bearer " + apiKey);
+        con.setRequestProperty(USER_AGENT, "Jenkins-Plugin v" + getVersion());
+        con.setConnectTimeout(TIMEOUT);
+        con.setReadTimeout(TIMEOUT);
+        con.setInstanceFollowRedirects(false);
+    }
 }

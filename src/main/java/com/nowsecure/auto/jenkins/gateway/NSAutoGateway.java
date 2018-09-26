@@ -22,7 +22,8 @@ import hudson.model.TaskListener;
 public class NSAutoGateway {
     private static final String BINARY_URL_SUFFIX = "/binary/";
     private static final String BUILD_URL_SUFFIX = "/build/";
-    private static final String NOWSECURE_AUTO_SECURITY_TEST = " nowsecure-auto-security-test ";
+    private static final String NOWSECURE_AUTO_SECURITY_TEST = " nowsecure-auto-security-test v" + IOHelper.getVersion()
+                                                               + " ";
     private static final String NOWSECURE_AUTO_SECURITY_TEST_UPLOADED_BINARY_JSON = "/nowsecure-auto-security-test-uploaded-binary.json";
     private static final String NOWSECURE_AUTO_SECURITY_TEST_REPORT_REQUEST_JSON = "/nowsecure-auto-security-test-request.json";
     private static final String NOWSECURE_AUTO_SECURITY_TEST_PREFLIGHT_JSON = "/nowsecure-auto-security-test-preflight.json";
@@ -177,7 +178,8 @@ public class NSAutoGateway {
                     throw new AbortException("Test failed because score (" + scoreInfo.getScore()
                                              + ") is lower than threshold " + params.getScoreThreshold());
                 }
-                info("test passed with score " + scoreInfo.getScore() + getElapsedMinutes(started));
+                info("test passed with score " + scoreInfo.getScore() + " (threshold " + params.getScoreThreshold()
+                     + ")" + getElapsedMinutes(started));
                 return;
             }
         }
