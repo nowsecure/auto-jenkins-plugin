@@ -43,6 +43,13 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>com.nowsecure</groupId>
+            <artifactId>auto-circleci-plugin</artifactId>
+            <version>0.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/auto-circleci-plugin-0.4.jar</systemPath>
+        </dependency>
+        <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1</version>
