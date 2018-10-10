@@ -7,6 +7,8 @@ import com.nowsecure.auto.domain.NSAutoParameters;
 import hudson.AbortException;
 
 public class ParamsAdapter implements NSAutoParameters {
+    private static final int DEFAULT_SCORE_THRESHOLD = 70;
+    private static final int DEFAULT_WAIT_MINUTES = 30;
     private final NSAutoParameters delegateParams;
     private final String token;
     private final File artifactsDir;
@@ -14,15 +16,16 @@ public class ParamsAdapter implements NSAutoParameters {
     private final boolean breakBuildOnScore;
     private final boolean waitForResults;
 
-    public ParamsAdapter(NSAutoParameters delegateParams, String token, File artifactsDir, File file,
+    public ParamsAdapter(NSAutoParameters delegateParams, String overrideApiKey, File artifactsDir, File file,
             boolean breakBuildOnScore, boolean waitForResults) throws AbortException {
         this.delegateParams = delegateParams;
         this.artifactsDir = artifactsDir;
         this.file = file;
         this.breakBuildOnScore = breakBuildOnScore;
         this.waitForResults = waitForResults;
-        this.token = token == null || token.isEmpty() ? delegateParams.getApiKey() : token;
-        if (token == null || token.trim().isEmpty()) {
+        this.token = overrideApiKey == null || overrideApiKey.trim().isEmpty() ? delegateParams.getApiKey()
+                : overrideApiKey;
+        if (this.token == null || this.token.trim().isEmpty()) {
             throw new AbortException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
         }
     }
@@ -34,7 +37,6 @@ public class ParamsAdapter implements NSAutoParameters {
 
     @Override
     public String getApiUrl() {
-        // TODO Auto-generated method stub
         return delegateParams.getApiUrl();
     }
 
@@ -60,12 +62,14 @@ public class ParamsAdapter implements NSAutoParameters {
 
     @Override
     public int getScoreThreshold() {
-        return breakBuildOnScore && waitForResults ? delegateParams.getScoreThreshold() : 0;
+        return breakBuildOnScore && waitForResults ? (delegateParams.getScoreThreshold() > 0
+                ? delegateParams.getScoreThreshold() : DEFAULT_SCORE_THRESHOLD) : 0;
     }
 
     @Override
     public int getWaitMinutes() {
-        return waitForResults ? delegateParams.getWaitMinutes() : 0;
+        return waitForResults
+                ? (delegateParams.getWaitMinutes() > 0 ? delegateParams.getWaitMinutes() : DEFAULT_WAIT_MINUTES) : 0;
     }
 
 }

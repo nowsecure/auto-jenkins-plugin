@@ -45,27 +45,25 @@ import net.sf.json.JSONException;
  *
  */
 public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters {
+    private static final String NS_REPORTS_DIR = "nowsecure-auto-security-test";
     private static final int TIMEOUT = 60000;
-    private static final int DEFAULT_SCORE_THRESHOLD = 70;
-    private static final int DEFAULT_WAIT_MINUTES = 30;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";
-    private static final String PLUGIN_NAME = " jenkins-nowsecure-auto-security-test v" + IOHelper.getVersion();
+    private static final String PLUGIN_NAME = "jenkins-nowsecure-auto-security-test";
     @CheckForNull
     private String apiUrl = DEFAULT_URL;
     private String group;
     private String binaryName;
-    private String description = "NowSecure Auto Security Test";
+    private String description;
     private boolean waitForResults;
-    private int waitMinutes = DEFAULT_WAIT_MINUTES;
+    private int waitMinutes;
     private boolean breakBuildOnScore;
-    private int scoreThreshold = DEFAULT_SCORE_THRESHOLD;
+    private int scoreThreshold;
     private String apiKey;
     private boolean useBuildEndpoint;
-    private final IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
 
     @DataBoundConstructor
-    public NSAutoPlugin(String binaryName, String description, String apiUrl, String group, boolean waitForResults,
-            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold, boolean useBuildEndpoint) {
+    public NSAutoPlugin(String apiUrl, String group, String binaryName, String description, boolean waitForResults,
+            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold, String apiKey, boolean useBuildEndpoint) {
         this.apiUrl = apiUrl;
         this.group = group;
         this.binaryName = binaryName;
@@ -74,6 +72,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.waitMinutes = waitMinutes;
         this.breakBuildOnScore = breakBuildOnScore;
         this.scoreThreshold = scoreThreshold;
+        this.apiKey = apiKey;
         this.useBuildEndpoint = useBuildEndpoint;
     }
 
@@ -210,7 +209,10 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         throw new UnsupportedOperationException("getFile not supported");
     }
 
-    private File getBinaryFile(File workspace, File artifactsDir) throws IOException {
+    private File getBinaryFile(File workspace, File artifactsDir, IOHelper helper) throws IOException {
+        if (!artifactsDir.mkdirs()) {
+            System.err.println("Couldn't create " + artifactsDir);
+        }
         File file = helper.find(artifactsDir, new File(getBinaryName()));
         if (file == null) {
             file = helper.find(workspace, new File(getBinaryName()));
@@ -226,18 +228,16 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     @POST
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
+        final IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
         String token = run.getEnvironment().get("apiKey");
-        File file = getBinaryFile(new File(workspace.getRemote()), run.getArtifactsDir());
-        System.out
-                .println("---------------" + file + ", ws " + workspace.getRemote() + ", dir " + run.getArtifactsDir());
-        ParamsAdapter params = new ParamsAdapter(this, token,
-                new File(run.getArtifactsDir(), "nowsecure-auto-security-test"), file, breakBuildOnScore,
-                waitForResults);
+        File file = getBinaryFile(new File(workspace.getRemote()), run.getArtifactsDir(), helper);
+        ParamsAdapter params = new ParamsAdapter(this, token, new File(run.getArtifactsDir(), NS_REPORTS_DIR), file,
+                breakBuildOnScore, waitForResults);
         //
         NSAutoLogger logger = new NSAutoLogger() {
             @Override
             public void error(String msg) {
-                listener.error(PLUGIN_NAME + " v" + IOHelper.getVersion() + " " + String.valueOf(msg));
+                listener.error(PLUGIN_NAME + " v" + IOHelper.getVersion() + " " + msg);
 
             }
 
@@ -287,14 +287,6 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             return Messages.NSAutoPlugin_DescriptorImpl_DisplayName();
         }
 
-    }
-
-    @Override
-    public String toString() {
-        return "NSAutoPlugin [apiUrl=" + apiUrl + ", group=" + group + ", binaryName=" + binaryName
-               + ", waitForResults=" + waitForResults + ", waitMinutes=" + waitMinutes + ", breakBuildOnScore="
-               + breakBuildOnScore + ", scoreThreshold=" + scoreThreshold + ", apiKey="
-               + (apiKey != null ? "****" : "undefined") + "]";
     }
 
 }
