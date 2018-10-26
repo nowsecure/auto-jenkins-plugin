@@ -213,12 +213,26 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         if (!artifactsDir.mkdirs()) {
             System.err.println("Couldn't create " + artifactsDir);
         }
-        File file = helper.find(artifactsDir, new File(getBinaryName()));
-        if (file == null) {
-            file = helper.find(workspace, new File(getBinaryName()));
+        String binary = getBinaryName();
+        if (binary == null) {
+            throw new AbortException("binaryName parameter not defined");
         }
-        if (file == null) {
-            throw new AbortException("Failed to find " + getBinaryName() + " under " + artifactsDir);
+        binary = binary.trim();
+        File file;
+        if (binary.startsWith("/") || binary.startsWith("\\")) {
+            file = new File(binary);
+            if (!file.exists()) {
+                throw new AbortException("Failed to find binary file '" + binary + "'");
+            }
+        } else {
+            file = helper.find(artifactsDir, new File(binary));
+            if (file == null) {
+                file = helper.find(workspace, new File(binary));
+            }
+            if (file == null || !file.exists()) {
+                throw new AbortException(
+                        "Failed to find '" + binary + "' under '" + artifactsDir + "' or under '" + workspace + "'");
+            }
         }
         return file;
     }
@@ -226,8 +240,8 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     @SuppressWarnings("deprecation")
     @Override
     @POST
-    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
-            throws InterruptedException, IOException {
+    public void perform(final Run<?, ?> run, final FilePath workspace, final Launcher launcher,
+            final TaskListener listener) throws InterruptedException, IOException {
         final IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
         String token = run.getEnvironment().get("apiKey");
         File file = getBinaryFile(new File(workspace.getRemote()), run.getArtifactsDir(), helper);
@@ -237,13 +251,14 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         NSAutoLogger logger = new NSAutoLogger() {
             @Override
             public void error(String msg) {
-                listener.error(PLUGIN_NAME + " v" + IOHelper.getVersion() + " " + msg);
+                listener.error(IOHelper.LOCAL_HOST + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg);
 
             }
 
             @Override
             public void info(String msg) {
-                listener.getLogger().println(new Date() + " " + PLUGIN_NAME + " v" + IOHelper.getVersion() + " " + msg);
+                listener.getLogger().println(new Date() + "@" + IOHelper.LOCAL_HOST + ":" + PLUGIN_NAME + "-v"
+                                             + IOHelper.getVersion() + " " + msg);
             }
         };
 
