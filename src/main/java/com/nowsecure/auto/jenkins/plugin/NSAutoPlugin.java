@@ -116,7 +116,6 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.apiKey = apiKey;
     }
 
-    @Nonnull
     public String getBinaryName() {
         return binaryName;
     }
@@ -209,12 +208,14 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         throw new UnsupportedOperationException("getFile not supported");
     }
 
-    private File getBinaryFile(File workspace, File artifactsDir, IOHelper helper) throws IOException {
+    private File getBinaryFile(File workspace, File artifactsDir, IOHelper helper, NSAutoLogger logger)
+            throws IOException {
         if (!artifactsDir.mkdirs()) {
             System.err.println("Couldn't create " + artifactsDir);
         }
         String binary = getBinaryName();
         if (binary == null) {
+            logger.error("binaryName parameter not defined");
             throw new AbortException("binaryName parameter not defined");
         }
         binary = binary.trim();
@@ -222,7 +223,9 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         if (binary.startsWith("/") || binary.startsWith("\\")) {
             file = new File(binary);
             if (!file.exists()) {
-                throw new AbortException("Failed to find binary file '" + binary + "'");
+                logger.error("Failed to find binary file '" + binary + "' ('" + file.getAbsolutePath() + "'\n");
+                throw new AbortException(
+                        "Failed to find binary file '" + binary + "' ('" + file.getAbsolutePath() + "'");
             }
         } else {
             file = helper.find(artifactsDir, new File(binary));
@@ -230,8 +233,10 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
                 file = helper.find(workspace, new File(binary));
             }
             if (file == null || !file.exists()) {
+                logger.error(
+                        "Failed to find '" + binary + "' under '" + artifactsDir + "' or under '" + workspace + "'\n");
                 throw new AbortException(
-                        "Failed to find '" + binary + "' under '" + artifactsDir + "' or under '" + workspace + "'");
+                        "Failed to find '" + binary + "' under '" + artifactsDir + "' or under '" + workspace + "'\n");
             }
         }
         return file;
@@ -244,9 +249,6 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final TaskListener listener) throws InterruptedException, IOException {
         final IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
         String token = run.getEnvironment().get("apiKey");
-        File file = getBinaryFile(new File(workspace.getRemote()), run.getArtifactsDir(), helper);
-        ParamsAdapter params = new ParamsAdapter(this, token, new File(run.getArtifactsDir(), NS_REPORTS_DIR), file,
-                breakBuildOnScore, waitForResults);
         //
         NSAutoLogger logger = new NSAutoLogger() {
             @Override
@@ -261,7 +263,11 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
                                              + IOHelper.getVersion() + " " + msg);
             }
         };
+        logger.info("****** Starting apiUrl " + apiUrl + ", binaryName " + binaryName + " ******\n");
 
+        File file = getBinaryFile(new File(workspace.getRemote()), run.getArtifactsDir(), helper, logger);
+        ParamsAdapter params = new ParamsAdapter(this, token, new File(run.getArtifactsDir(), NS_REPORTS_DIR), file,
+                breakBuildOnScore, waitForResults);
         new NSAutoGateway(params, logger, helper).execute();
     }
 
