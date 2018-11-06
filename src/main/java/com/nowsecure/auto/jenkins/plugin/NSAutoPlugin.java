@@ -250,7 +250,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
         final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
         //
-        if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, token, PLUGIN_NAME)) {
+        if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, binaryName, PLUGIN_NAME)) {
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
                     breakBuildOnScore, waitForResults, PLUGIN_NAME);
             logger.info("****** Starting Local Execution with " + params + " ******\n");
