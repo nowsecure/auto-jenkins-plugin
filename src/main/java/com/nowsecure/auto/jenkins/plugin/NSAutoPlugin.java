@@ -2,8 +2,10 @@ package com.nowsecure.auto.jenkins.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.Date;
+import java.util.Map;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -11,6 +13,7 @@ import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -30,6 +33,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.remoting.Callable;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -44,7 +48,9 @@ import net.sf.json.JSONException;
  * @author sbhatti
  *
  */
-public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters {
+public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoParameters, Serializable {
+    private static final String NSAUTO_JENKINS = "nsauto_jenkins_";
+    private static final long serialVersionUID = 1L;
     private static final String NS_REPORTS_DIR = "nowsecure-auto-security-test";
     private static final int TIMEOUT = 60000;
     private static final String DEFAULT_URL = "https://lab-api.nowsecure.com";
@@ -60,6 +66,31 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private int scoreThreshold;
     private String apiKey;
     private boolean useBuildEndpoint;
+
+    private static class Logger implements NSAutoLogger, Serializable {
+        private static final long serialVersionUID = 1L;
+        private final TaskListener listener;
+
+        private Logger(TaskListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void error(String msg) {
+            listener.error(
+                    "ERROR " + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg);
+            System.err.println(
+                    "ERROR " + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg);
+        }
+
+        @Override
+        public void info(String msg) {
+            listener.getLogger().println("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
+                                         + IOHelper.getVersion() + " " + msg);
+            System.out.println("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
+                               + IOHelper.getVersion() + " " + msg);
+        }
+    }
 
     @DataBoundConstructor
     public NSAutoPlugin(String apiUrl, String group, String binaryName, String description, boolean waitForResults,
@@ -177,7 +208,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
      * (non-Javadoc)
      * 
      * @see
-     * com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getScoreThreshold()
+     * com.nowsecure.auto.jenkins.plugin.NSAutoParameters#getScoreThreshold( )
      */
     @Override
     public int getScoreThreshold() {
@@ -208,67 +239,64 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         throw new UnsupportedOperationException("getFile not supported");
     }
 
-    private File getBinaryFile(File workspace, File artifactsDir, IOHelper helper, NSAutoLogger logger)
-            throws IOException {
-        if (!artifactsDir.mkdirs()) {
-            System.err.println("Couldn't create " + artifactsDir);
-        }
-        String binary = getBinaryName();
-        if (binary == null) {
-            logger.error("binaryName parameter not defined");
-            throw new AbortException("binaryName parameter not defined");
-        }
-        binary = binary.trim();
-        File file;
-        if (binary.startsWith("/") || binary.startsWith("\\")) {
-            file = new File(binary);
-            if (!file.exists()) {
-                logger.error("Failed to find binary file '" + binary + "' ('" + file.getAbsolutePath() + "'\n");
-                throw new AbortException(
-                        "Failed to find binary file '" + binary + "' ('" + file.getAbsolutePath() + "'");
-            }
-        } else {
-            file = helper.find(artifactsDir, new File(binary));
-            if (file == null) {
-                file = helper.find(workspace, new File(binary));
-            }
-            if (file == null || !file.exists()) {
-                logger.error(
-                        "Failed to find '" + binary + "' under '" + artifactsDir + "' or under '" + workspace + "'\n");
-                throw new AbortException(
-                        "Failed to find '" + binary + "' under '" + artifactsDir + "' or under '" + workspace + "'\n");
-            }
-        }
-        return file;
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     @POST
     public void perform(final Run<?, ?> run, final FilePath workspace, final Launcher launcher,
             final TaskListener listener) throws InterruptedException, IOException {
-        final IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
-        String token = run.getEnvironment().get("apiKey");
+        final File workspaceDir = new File(workspace.getRemote());
+        final String token = run.getEnvironment().get("apiKey");
+        final NSAutoLogger logger = new Logger(listener);
+        final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
+        final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
         //
-        NSAutoLogger logger = new NSAutoLogger() {
-            @Override
-            public void error(String msg) {
-                listener.error(IOHelper.LOCAL_HOST + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg);
+        if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, token, PLUGIN_NAME)) {
+            final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
+                    breakBuildOnScore, waitForResults, PLUGIN_NAME);
+            logger.info("****** Starting Local Execution with " + params + " ******\n");
 
+            execute(listener, params, logger);
+        } else {
+            final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, remoteArtifactsDir, binaryName,
+                    breakBuildOnScore, waitForResults, PLUGIN_NAME);
+            logger.info("****** Starting Remote Execution with " + params + " ******\n");
+            Callable<Map<String, String>, IOException> task = new Callable<Map<String, String>, IOException>() {
+                private static final long serialVersionUID = 1L;
+
+                public Map<String, String> call() throws IOException {
+                    return execute(listener, params, logger);
+                }
+
+                @Override
+                public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+                }
+            };
+            //
+            Map<String, String> artifacts = launcher.getChannel().call(task);
+            IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
+            for (Map.Entry<String, String> e : artifacts.entrySet()) {
+                File path = new File(localArtifactsDir, e.getKey());
+                helper.save(path, e.getValue());
             }
+        }
+    }
 
-            @Override
-            public void info(String msg) {
-                listener.getLogger().println(new Date() + "@" + IOHelper.LOCAL_HOST + ":" + PLUGIN_NAME + "-v"
-                                             + IOHelper.getVersion() + " " + msg);
-            }
-        };
-        logger.info("****** Starting apiUrl " + apiUrl + ", binaryName " + binaryName + " ******\n");
+    private static Map<String, String> execute(final TaskListener listener, ParamsAdapter params, NSAutoLogger logger)
+            throws IOException {
+        try {
+            params.getFile();
+            NSAutoGateway gw = new NSAutoGateway(params, logger, new IOHelper(PLUGIN_NAME, TIMEOUT));
+            gw.execute();
+            return gw.getArtifactContents(true);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new AbortException(e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+            throw new AbortException(e.getMessage());
+        }
 
-        File file = getBinaryFile(new File(workspace.getRemote()), run.getArtifactsDir(), helper, logger);
-        ParamsAdapter params = new ParamsAdapter(this, token, new File(run.getArtifactsDir(), NS_REPORTS_DIR), file,
-                breakBuildOnScore, waitForResults);
-        new NSAutoGateway(params, logger, helper).execute();
     }
 
     @Symbol({ "apiKey", "apiUrl", "binaryName" })
@@ -309,5 +337,4 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         }
 
     }
-
 }
