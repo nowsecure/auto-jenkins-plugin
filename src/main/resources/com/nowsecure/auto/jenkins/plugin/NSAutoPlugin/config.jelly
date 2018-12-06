@@ -56,6 +56,9 @@
 			<f:entry title="${%scoreThreshold}" field="scoreThreshold">
 				<f:textbox field="scoreThreshold" />
 			</f:entry>
+			<f:entry title="${%showStatusMessages}" field="showStatusMessages">
+				<f:checkbox field="showStatusMessages" />
+			</f:entry>
 		</f:advanced>
 	</f:section>
 

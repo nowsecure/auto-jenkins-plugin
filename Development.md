@@ -22,6 +22,18 @@ Then redeploy Jenkins.
 mvn release:prepare release:perform -Dusername=... -Dpassword=...
 ```
 
+## Testing Master/Slave
+- Create Slave node in Jenkins
+- Download agent.jar from master
+```
+url http://host:port/jnlpJars/agent.jar
+```
+- Start slave from another machine
+```
+java -jar agent.jar -jnlpUrl http://host:port/jenkins/computer/slave1/slave-agent.jnlp -secret xxxx -workDir ""
+```
+Note: in above example, slave is called slave1. You can go to slave node config in Jenkins to see the secret.
+
 ## Jenkins Upload permissions
 - https://github.com/jenkins-infra/repository-permissions-updater/permissions/plugin-nowsecure-auto-security-test.yml
 

@@ -19,6 +19,10 @@ public class ParamsAdapterTest implements NSAutoParameters {
     private File artifactsDir = new File("/tmp");
     private File file = new File("/tmp/test.apk");
     private String ipa = "/tmp/test.ipa";
+    private String username;
+    private String password;
+    private boolean showStatusMessages;
+    private String stopTestsForStatusMessage;
 
     private int score;
     private int minutes;
@@ -32,7 +36,8 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Test
     public void testConstructor() throws Exception {
         File dir = new File("/tmp/archive");
-        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName");
+        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName", "bill",
+                "pass", true, "stop");
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -41,12 +46,17 @@ public class ParamsAdapterTest implements NSAutoParameters {
         Assert.assertEquals(new File(ipa), param.getFile());
         Assert.assertEquals(30, param.getWaitMinutes());
         Assert.assertEquals(70, param.getScoreThreshold());
+        Assert.assertEquals("pass", param.getPassword());
+        Assert.assertEquals("stop", param.getStopTestsForStatusMessage());
+        Assert.assertEquals("bill", param.getUsername());
+        Assert.assertTrue(param.isShowStatusMessages());
     }
 
     @Test
     public void testConstructorWithScore() throws Exception {
         File dir = new File("/tmp/archive");
-        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName");
+        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName",
+                username, password, showStatusMessages, stopTestsForStatusMessage);
 
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
@@ -63,7 +73,8 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Test
     public void testConstructorWait() throws Exception {
         File dir = new File("/tmp/archive");
-        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, true, "pluginName");
+        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, true, "pluginName",
+                username, password, showStatusMessages, stopTestsForStatusMessage);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -77,7 +88,8 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Test
     public void testConstructorScore() throws Exception {
         File dir = new File("/tmp/archive");
-        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, false, "pluginName");
+        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, false, "pluginName",
+                username, password, showStatusMessages, stopTestsForStatusMessage);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -91,7 +103,8 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Test
     public void testConstructorNoWait() throws Exception {
         File dir = new File("/tmp/archive");
-        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, false, "pluginName");
+        ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, false, "pluginName",
+                username, password, showStatusMessages, stopTestsForStatusMessage);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -105,19 +118,69 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Test(expected = AbortException.class)
     public void testConstructorNullToken() throws Exception {
         token = null;
-        new ParamsAdapter(this, null, new File("/tmp/archive"), new File("/tmp/test.ipa"), "binary ", true, true, null);
+        new ParamsAdapter(this, null, new File("/tmp/archive"), new File("/tmp/test.ipa"), "binary ", true, true, null,
+                username, password, showStatusMessages, stopTestsForStatusMessage);
     }
 
     @Test(expected = AbortException.class)
     public void testConstructorBinary() throws Exception {
         token = null;
-        new ParamsAdapter(this, "xxxx", new File("/tmp/archive"), new File("/tmp/test.ipa"), null, true, true, null);
+        new ParamsAdapter(this, "xxxx", new File("/tmp/archive"), new File("/tmp/test.ipa"), null, true, true, null,
+                username, password, showStatusMessages, stopTestsForStatusMessage);
     }
 
     @Test(expected = AbortException.class)
     public void testConstructorEmptyToken() throws Exception {
         token = null;
-        new ParamsAdapter(this, "", new File("/tmp/archive"), new File("/tmp/test.ipa"), "binary ", true, true, null);
+        new ParamsAdapter(this, "", new File("/tmp/archive"), new File("/tmp/test.ipa"), "binary ", true, true, null,
+                username, password, showStatusMessages, stopTestsForStatusMessage);
+    }
+
+    @Test
+    public void testHasFile() throws Exception {
+        File dir = new File("/tmp/tmp");
+        dir.mkdirs();
+        File file = new File(dir, "tst");
+        file.createNewFile();
+        Assert.assertTrue(ParamsAdapter.hasFile(file.getParentFile(), new File("."), file.getName(), "name"));
+        file.delete();
+        dir.delete();
+    }
+
+    @Test
+    public void testHasFileAbsoluteNonExistant() throws Exception {
+        File dir = new File("/tmp/tmp");
+        File file = new File("/tmp/xxx/xxx");
+        Assert.assertFalse(
+                ParamsAdapter.hasFile(file.getParentFile(), new File("/tmpxxxx"), file.getAbsolutePath(), "name"));
+        file.delete();
+        dir.delete();
+    }
+
+    @Test
+    public void testHasFileAbsolute() throws Exception {
+        File dir = new File("/tmp/tmp");
+        dir.mkdirs();
+        File file = new File(dir, "tst");
+        file.createNewFile();
+        Assert.assertTrue(ParamsAdapter.hasFile(file.getParentFile(), new File("."), file.getAbsolutePath(), "name"));
+        file.delete();
+        dir.delete();
+    }
+
+    @Test
+    public void testHasFileNonExistant() throws Exception {
+        File dir = new File("/tmp/tmp");
+        File file = new File(dir, "tst");
+        Assert.assertFalse(ParamsAdapter.hasFile(file.getParentFile(), dir, file.getName(), "name"));
+        dir.delete();
+    }
+
+    @Test
+    public void testToString() throws Exception {
+        ParamsAdapter params = new ParamsAdapter(this, "", new File("/tmp/archive"), new File("/tmp/test.ipa"),
+                "binary ", true, true, null, username, password, showStatusMessages, stopTestsForStatusMessage);
+        Assert.assertNotNull(params.toString());
     }
 
     @Override
@@ -158,6 +221,42 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Override
     public int getWaitMinutes() {
         return minutes;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean isShowStatusMessages() {
+        return showStatusMessages;
+    }
+
+    public void setShowStatusMessages(boolean showStatusMessages) {
+        this.showStatusMessages = showStatusMessages;
+    }
+
+    @Override
+    public String getStopTestsForStatusMessage() {
+        return stopTestsForStatusMessage;
+    }
+
+    public void setStopTestsForStatusMessage(String stopTestsForStatusMessage) {
+        this.stopTestsForStatusMessage = stopTestsForStatusMessage;
     }
 
 }

@@ -22,11 +22,15 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     private final boolean breakBuildOnScore;
     private final boolean waitForResults;
     private final String pluginName;
+    private final String username;
+    private final String password;
+    private final boolean showStatusMessages;
+    private final String stopTestsForStatusMessage;
 
     //
     public ParamsAdapter(NSAutoParameters delegateParams, String overrideApiKey, File workspace, File artifactsDir,
-            String binaryName, boolean breakBuildOnScore, boolean waitForResults, String pluginName)
-            throws AbortException {
+            String binaryName, boolean breakBuildOnScore, boolean waitForResults, String pluginName, String username,
+            String password, boolean showStatusMessages, String stopTestsForStatusMessage) throws AbortException {
         if (binaryName == null) {
             throw new AbortException("binaryName parameter not defined");
         }
@@ -38,6 +42,10 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
         this.pluginName = pluginName;
         this.breakBuildOnScore = breakBuildOnScore;
         this.waitForResults = waitForResults;
+        this.username = username;
+        this.password = password;
+        this.showStatusMessages = showStatusMessages;
+        this.stopTestsForStatusMessage = stopTestsForStatusMessage;
         this.token = overrideApiKey == null || overrideApiKey.trim().isEmpty() ? delegateParams.getApiKey()
                 : overrideApiKey;
         if (this.token == null || this.token.trim().isEmpty()) {
@@ -68,6 +76,26 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     @Override
     public File getFile() {
         return getFile(workspace, artifactsDir, binaryName, pluginName);
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getStopTestsForStatusMessage() {
+        return stopTestsForStatusMessage;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isShowStatusMessages() {
+        return showStatusMessages;
     }
 
     public static boolean hasFile(File workspace, File artifactsDir, String binaryName, String pluginName) {

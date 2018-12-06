@@ -46,7 +46,7 @@ pipeline {
                 apiKey = credentials('AutoApiKey')
             }
             steps {
-                step([$class: 'NSAutoPlugin', apiKey: env.apiKey, binaryName: 'myapk.apk', breakBuildOnScore: true, description: 'my description', group: 'mygroup', waitForResults: true])
+                step([$class: 'NSAutoPlugin', apiKey: env.apiKey, binaryName: 'myapk.apk', breakBuildOnScore: true, description: 'my description', group: 'mygroup', waitForResults: true, showStatusMessages: true])
             }
         }
     }

@@ -66,6 +66,10 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private int scoreThreshold;
     private String apiKey;
     private boolean useBuildEndpoint;
+    private String username;
+    private String password;
+    private boolean showStatusMessages;
+    private String stopTestsForStatusMessage;
 
     private static class Logger implements NSAutoLogger, Serializable {
         private static final long serialVersionUID = 1L;
@@ -239,6 +243,46 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         throw new UnsupportedOperationException("getFile not supported");
     }
 
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @DataBoundSetter
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @DataBoundSetter
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean isShowStatusMessages() {
+        return showStatusMessages;
+    }
+
+    @DataBoundSetter
+    public void setShowStatusMessages(boolean showStatusMessages) {
+        this.showStatusMessages = showStatusMessages;
+    }
+
+    @Override
+    public String getStopTestsForStatusMessage() {
+        return stopTestsForStatusMessage;
+    }
+
+    @DataBoundSetter
+    public void setStopTestsForStatusMessage(String stopTestsForStatusMessage) {
+        this.stopTestsForStatusMessage = stopTestsForStatusMessage;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     @POST
@@ -252,13 +296,15 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         //
         if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, binaryName, PLUGIN_NAME)) {
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
-                    breakBuildOnScore, waitForResults, PLUGIN_NAME);
+                    breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
+                    stopTestsForStatusMessage);
             logger.info("****** Starting Local Execution with " + params + " ******\n");
 
             execute(listener, params, logger);
         } else {
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, remoteArtifactsDir, binaryName,
-                    breakBuildOnScore, waitForResults, PLUGIN_NAME);
+                    breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
+                    stopTestsForStatusMessage);
             logger.info("****** Starting Remote Execution with " + params + " ******\n");
             Callable<Map<String, String>, IOException> task = new Callable<Map<String, String>, IOException>() {
                 private static final long serialVersionUID = 1L;
