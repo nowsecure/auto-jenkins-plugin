@@ -46,4 +46,4 @@ Note: in above example, slave is called slave1. You can go to slave node config 
 - https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
 - https://github.com/jenkins-infra/repository-permissions-updater
 - https://wiki.jenkins.io/display/JENKINS/Plugins
-- https://repo.jenkins-ci.org/releases/io/jenkins/plugins/nowsecure-auto-security-test/0.1/
+- https://repo.jenkins-ci.org/releases/io/jenkins/plugins/nowsecure-auto-security-test/

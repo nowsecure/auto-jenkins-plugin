@@ -79,9 +79,11 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private static class Logger implements NSAutoLogger, Serializable {
         private static final long serialVersionUID = 1L;
         private final TaskListener listener;
+        private final boolean debug;
 
-        private Logger(TaskListener listener) {
+        private Logger(TaskListener listener, boolean debug) {
             this.listener = listener;
+            this.debug = debug;
         }
 
         @Override
@@ -98,6 +100,16 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
                                          + IOHelper.getVersion() + " " + msg);
             System.out.println("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
                                + IOHelper.getVersion() + " " + msg);
+        }
+
+        @Override
+        public void debug(String msg) {
+            if (debug) {
+                listener.getLogger().println("DEBUG " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME
+                                             + "-v" + IOHelper.getVersion() + " " + msg);
+                System.out.println("DEBUG " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
+                                   + IOHelper.getVersion() + " " + msg);
+            }
         }
     }
 
@@ -310,7 +322,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final TaskListener listener) throws InterruptedException, IOException {
         final File workspaceDir = new File(workspace.getRemote());
         final String token = run.getEnvironment().get("apiKey");
-        final NSAutoLogger logger = new Logger(listener);
+        final NSAutoLogger logger = new Logger(listener, debug);
         final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
         final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
         //
