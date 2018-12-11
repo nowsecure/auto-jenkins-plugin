@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.nowsecure.auto.domain.NSAutoParameters;
+import com.nowsecure.auto.domain.ProxySettings;
 import com.nowsecure.auto.utils.IOHelper;
 
 import hudson.AbortException;
@@ -23,6 +24,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
     private String password;
     private boolean showStatusMessages;
     private String stopTestsForStatusMessage;
+    private boolean debug;
 
     private int score;
     private int minutes;
@@ -37,7 +39,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
     public void testConstructor() throws Exception {
         File dir = new File("/tmp/archive");
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName", "bill",
-                "pass", true, "stop");
+                "pass", true, "stop", new ProxySettings(), true);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -56,7 +58,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
     public void testConstructorWithScore() throws Exception {
         File dir = new File("/tmp/archive");
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName",
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), false);
 
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
@@ -74,7 +76,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
     public void testConstructorWait() throws Exception {
         File dir = new File("/tmp/archive");
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, true, "pluginName",
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), true);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -89,7 +91,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
     public void testConstructorScore() throws Exception {
         File dir = new File("/tmp/archive");
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, false, "pluginName",
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), false);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -104,7 +106,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
     public void testConstructorNoWait() throws Exception {
         File dir = new File("/tmp/archive");
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, false, "pluginName",
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), true);
         Assert.assertEquals("newToken", param.getApiKey());
         Assert.assertEquals("url", param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
@@ -119,21 +121,21 @@ public class ParamsAdapterTest implements NSAutoParameters {
     public void testConstructorNullToken() throws Exception {
         token = null;
         new ParamsAdapter(this, null, new File("/tmp/archive"), new File("/tmp/test.ipa"), "binary ", true, true, null,
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), true);
     }
 
     @Test(expected = AbortException.class)
     public void testConstructorBinary() throws Exception {
         token = null;
         new ParamsAdapter(this, "xxxx", new File("/tmp/archive"), new File("/tmp/test.ipa"), null, true, true, null,
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), false);
     }
 
     @Test(expected = AbortException.class)
     public void testConstructorEmptyToken() throws Exception {
         token = null;
         new ParamsAdapter(this, "", new File("/tmp/archive"), new File("/tmp/test.ipa"), "binary ", true, true, null,
-                username, password, showStatusMessages, stopTestsForStatusMessage);
+                username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), true);
     }
 
     @Test
@@ -179,7 +181,8 @@ public class ParamsAdapterTest implements NSAutoParameters {
     @Test
     public void testToString() throws Exception {
         ParamsAdapter params = new ParamsAdapter(this, "", new File("/tmp/archive"), new File("/tmp/test.ipa"),
-                "binary ", true, true, null, username, password, showStatusMessages, stopTestsForStatusMessage);
+                "binary ", true, true, null, username, password, showStatusMessages, stopTestsForStatusMessage,
+                new ProxySettings(), true);
         Assert.assertNotNull(params.toString());
     }
 
@@ -257,6 +260,20 @@ public class ParamsAdapterTest implements NSAutoParameters {
 
     public void setStopTestsForStatusMessage(String stopTestsForStatusMessage) {
         this.stopTestsForStatusMessage = stopTestsForStatusMessage;
+    }
+
+    @Override
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    @Override
+    public ProxySettings getProxySettings() {
+        return new ProxySettings();
     }
 
 }

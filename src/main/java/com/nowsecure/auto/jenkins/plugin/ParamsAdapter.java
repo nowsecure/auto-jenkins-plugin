@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import com.nowsecure.auto.domain.NSAutoParameters;
+import com.nowsecure.auto.domain.ProxySettings;
 import com.nowsecure.auto.utils.IOHelper;
 
 import hudson.AbortException;
@@ -26,11 +27,14 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     private final String password;
     private final boolean showStatusMessages;
     private final String stopTestsForStatusMessage;
+    private final boolean debug;
+    private final ProxySettings proxySettings;
 
     //
     public ParamsAdapter(NSAutoParameters delegateParams, String overrideApiKey, File workspace, File artifactsDir,
             String binaryName, boolean breakBuildOnScore, boolean waitForResults, String pluginName, String username,
-            String password, boolean showStatusMessages, String stopTestsForStatusMessage) throws AbortException {
+            String password, boolean showStatusMessages, String stopTestsForStatusMessage, ProxySettings proxySettings,
+            boolean debug) throws AbortException {
         if (binaryName == null) {
             throw new AbortException("binaryName parameter not defined");
         }
@@ -46,6 +50,8 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
         this.password = password;
         this.showStatusMessages = showStatusMessages;
         this.stopTestsForStatusMessage = stopTestsForStatusMessage;
+        this.debug = debug;
+        this.proxySettings = proxySettings;
         this.token = overrideApiKey == null || overrideApiKey.trim().isEmpty() ? delegateParams.getApiKey()
                 : overrideApiKey;
         if (this.token == null || this.token.trim().isEmpty()) {
@@ -154,9 +160,19 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     }
 
     @Override
+    public boolean isDebug() {
+        return debug;
+    }
+
+    @Override
+    public ProxySettings getProxySettings() {
+        return proxySettings;
+    }
+
+    @Override
     public String toString() {
         return "Params [workspace=" + workspace + ", artifactsDir=" + artifactsDir + ", binaryName=" + binaryName
-               + ", apiUrl=" + getApiUrl() + "]";
+               + ", apiUrl=" + getApiUrl() + ", proxySettings=" + proxySettings + ", debug=" + debug + "]";
     }
 
 }

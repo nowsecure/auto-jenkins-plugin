@@ -22,6 +22,7 @@ import org.kohsuke.stapler.verb.POST;
 
 import com.nowsecure.auto.domain.NSAutoLogger;
 import com.nowsecure.auto.domain.NSAutoParameters;
+import com.nowsecure.auto.domain.ProxySettings;
 import com.nowsecure.auto.gateway.NSAutoGateway;
 import com.nowsecure.auto.utils.IOHelper;
 
@@ -29,6 +30,7 @@ import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.ProxyConfiguration;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.Run;
@@ -37,6 +39,7 @@ import hudson.remoting.Callable;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONException;
 
@@ -70,6 +73,8 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private String password;
     private boolean showStatusMessages;
     private String stopTestsForStatusMessage;
+    ProxySettings proxySettings = new ProxySettings();
+    private boolean debug;
 
     private static class Logger implements NSAutoLogger, Serializable {
         private static final long serialVersionUID = 1L;
@@ -283,6 +288,21 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.stopTestsForStatusMessage = stopTestsForStatusMessage;
     }
 
+    @Override
+    public ProxySettings getProxySettings() {
+        return proxySettings;
+    }
+
+    @Override
+    public boolean isDebug() {
+        return debug;
+    }
+
+    @DataBoundSetter
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     @POST
@@ -294,23 +314,32 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
         final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
         //
+        if (Jenkins.getInstance() != null && Jenkins.getInstance().proxy != null) {
+            final ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+            proxySettings.setProxyServer(proxy.name);
+            proxySettings.setProxyPort(proxy.port);
+            proxySettings.setUserName(proxy.getUserName());
+            proxySettings.setPassword(proxy.getPassword());
+            proxySettings.setNoProxyHost(proxy.noProxyHost);
+        }
+        //
         if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, binaryName, PLUGIN_NAME)) {
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
                     breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
-                    stopTestsForStatusMessage);
+                    stopTestsForStatusMessage, proxySettings, debug);
             logger.info("****** Starting Local Execution with " + params + " ******\n");
 
-            execute(listener, params, logger);
+            execute(listener, params, logger, true);
         } else {
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, remoteArtifactsDir, binaryName,
                     breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
-                    stopTestsForStatusMessage);
+                    stopTestsForStatusMessage, proxySettings, debug);
             logger.info("****** Starting Remote Execution with " + params + " ******\n");
             Callable<Map<String, String>, IOException> task = new Callable<Map<String, String>, IOException>() {
                 private static final long serialVersionUID = 1L;
 
                 public Map<String, String> call() throws IOException {
-                    return execute(listener, params, logger);
+                    return execute(listener, params, logger, false);
                 }
 
                 @Override
@@ -328,19 +357,19 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         }
     }
 
-    private static Map<String, String> execute(final TaskListener listener, ParamsAdapter params, NSAutoLogger logger)
-            throws IOException {
+    private static Map<String, String> execute(final TaskListener listener, ParamsAdapter params, NSAutoLogger logger,
+            boolean master) throws IOException {
         try {
             params.getFile();
             NSAutoGateway gw = new NSAutoGateway(params, logger, new IOHelper(PLUGIN_NAME, TIMEOUT));
-            gw.execute();
+            gw.execute(master);
             return gw.getArtifactContents(true);
         } catch (IOException e) {
-            logger.error(e.getMessage());
-            throw new AbortException(e.getMessage());
+            logger.error(e.toString());
+            throw new AbortException(e.toString());
         } catch (RuntimeException e) {
-            logger.error(e.getMessage());
-            throw new AbortException(e.getMessage());
+            logger.error(e.toString());
+            throw new AbortException(e.toString());
         }
 
     }
@@ -383,4 +412,5 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         }
 
     }
+
 }
