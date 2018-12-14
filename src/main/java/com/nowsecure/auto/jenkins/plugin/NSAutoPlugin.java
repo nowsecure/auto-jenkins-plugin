@@ -1,9 +1,13 @@
 package com.nowsecure.auto.jenkins.plugin;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Map;
 
@@ -20,6 +24,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
+import com.nowsecure.auto.domain.Color;
 import com.nowsecure.auto.domain.NSAutoLogger;
 import com.nowsecure.auto.domain.NSAutoParameters;
 import com.nowsecure.auto.domain.ProxySettings;
@@ -73,7 +78,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private String password;
     private boolean showStatusMessages;
     private String stopTestsForStatusMessage;
-    ProxySettings proxySettings = new ProxySettings();
+    private ProxySettings proxySettings = new ProxySettings();
     private boolean debug;
 
     private static class Logger implements NSAutoLogger, Serializable {
@@ -88,29 +93,39 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
         @Override
         public void error(String msg) {
-            listener.error(
-                    "ERROR " + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg);
-            System.err.println(
-                    "ERROR " + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg);
+            listener.error(Color.Red.format(
+                    "ERROR " + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg));
+            System.err.println(Color.Red.format(
+                    "ERROR " + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg));
+        }
+
+        @Override
+        public void info(String msg, Color color) {
+            if (color == null) {
+                color = Color.Black;
+            }
+            listener.getLogger().println(color.format("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":"
+                                                      + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg));
+            System.out.println(color.format("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME
+                                            + "-v" + IOHelper.getVersion() + " " + msg));
         }
 
         @Override
         public void info(String msg) {
-            listener.getLogger().println("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
-                                         + IOHelper.getVersion() + " " + msg);
-            System.out.println("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
-                               + IOHelper.getVersion() + " " + msg);
+            info(msg, null);
         }
 
         @Override
         public void debug(String msg) {
             if (debug) {
-                listener.getLogger().println("DEBUG " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME
-                                             + "-v" + IOHelper.getVersion() + " " + msg);
-                System.out.println("DEBUG " + new Date() + "@" + IOHelper.getLocalHost() + ":" + PLUGIN_NAME + "-v"
-                                   + IOHelper.getVersion() + " " + msg);
+                listener.getLogger()
+                        .println(Color.Black.format("DEBUG " + new Date() + "@" + IOHelper.getLocalHost() + ":"
+                                                    + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg));
+                System.out.println(Color.Black.format("DEBUG " + new Date() + "@" + IOHelper.getLocalHost() + ":"
+                                                      + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg));
             }
         }
+
     }
 
     @DataBoundConstructor
@@ -339,14 +354,14 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
                     breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
                     stopTestsForStatusMessage, proxySettings, debug);
-            logger.info("****** Starting Local Execution with " + params + " ******\n");
+            logger.info("****** Starting Local Execution with " + params + " ******\n", Color.Purple);
 
             execute(listener, params, logger, true);
         } else {
             final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, remoteArtifactsDir, binaryName,
                     breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
                     stopTestsForStatusMessage, proxySettings, debug);
-            logger.info("****** Starting Remote Execution with " + params + " ******\n");
+            logger.info("****** Starting Remote Execution with " + params + " ******\n", Color.Purple);
             Callable<Map<String, String>, IOException> task = new Callable<Map<String, String>, IOException>() {
                 private static final long serialVersionUID = 1L;
 
@@ -377,10 +392,14 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             gw.execute(master);
             return gw.getArtifactContents(true);
         } catch (IOException e) {
-            logger.error(e.toString());
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(bos, true, "UTF-8"));
+            logger.error(e.toString() + "\n" + bos.toString("UTF-8"));
             throw new AbortException(e.toString());
         } catch (RuntimeException e) {
-            logger.error(e.toString());
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            e.printStackTrace(new PrintStream(bos, true, "UTF-8"));
+            logger.error(e.toString() + "\n" + bos.toString("UTF-8"));
             throw new AbortException(e.toString());
         }
 
