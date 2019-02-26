@@ -80,6 +80,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private String stopTestsForStatusMessage;
     private ProxySettings proxySettings = new ProxySettings();
     private boolean debug;
+    private boolean proxyEnabled;
 
     private static class Logger implements NSAutoLogger, Serializable {
         private static final long serialVersionUID = 1L;
@@ -330,57 +331,79 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.debug = debug;
     }
 
+    @Override
+    public boolean isProxyEnabled() {
+        return proxyEnabled;
+    }
+
+    @DataBoundSetter
+    public void setProxyEnabled(boolean proxyEnabled) {
+        this.proxyEnabled = proxyEnabled;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     @POST
     public void perform(final Run<?, ?> run, final FilePath workspace, final Launcher launcher,
             final TaskListener listener) throws InterruptedException, IOException {
-        final File workspaceDir = new File(workspace.getRemote());
-        final String token = run.getEnvironment().get("apiKey");
-        final NSAutoLogger logger = new Logger(listener, debug);
-        final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
-        final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
-        //
-        if (Jenkins.getInstance() != null && Jenkins.getInstance().proxy != null) {
-            final ProxyConfiguration proxy = Jenkins.getInstance().proxy;
-            proxySettings.setProxyServer(proxy.name);
-            proxySettings.setProxyPort(proxy.port);
-            proxySettings.setUserName(proxy.getUserName());
-            proxySettings.setProxyPass(proxy.getPassword());
-            proxySettings.setNoProxyHost(proxy.noProxyHost);
-        }
-        //
-        if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, binaryName, PLUGIN_NAME)) {
-            final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
-                    breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
-                    stopTestsForStatusMessage, proxySettings, debug);
-            logger.info("****** Starting Local Execution with " + params + " ******\n", Color.Purple);
-
-            execute(listener, params, logger, true);
-        } else {
-            final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, remoteArtifactsDir, binaryName,
-                    breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
-                    stopTestsForStatusMessage, proxySettings, debug);
-            logger.info("****** Starting Remote Execution with " + params + " ******\n", Color.Purple);
-            Callable<Map<String, String>, IOException> task = new Callable<Map<String, String>, IOException>() {
-                private static final long serialVersionUID = 1L;
-
-                public Map<String, String> call() throws IOException {
-                    return execute(listener, params, logger, false);
-                }
-
-                @Override
-                public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
-                }
-            };
+        String classFilter = System.getProperty("hudson.remoting.ClassFilter", "");
+        try {
+            System.setProperty("hudson.remoting.ClassFilter", ProxySettings.class.getName());
+            final File workspaceDir = new File(workspace.getRemote());
+            final String token = run.getEnvironment().get("apiKey");
+            final NSAutoLogger logger = new Logger(listener, debug);
+            final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
+            final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
             //
-            Map<String, String> artifacts = launcher.getChannel().call(task);
-            IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
-            for (Map.Entry<String, String> e : artifacts.entrySet()) {
-                File path = new File(localArtifactsDir, e.getKey());
-                helper.save(path, e.getValue());
+            if (proxyEnabled && Jenkins.getInstance() != null && Jenkins.getInstance().proxy != null) {
+                final ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+                proxySettings.setProxyServer(proxy.name);
+                proxySettings.setProxyPort(proxy.port);
+                proxySettings.setUserName(proxy.getUserName());
+                proxySettings.setProxyPass(proxy.getPassword());
+                proxySettings.setNoProxyHost(proxy.noProxyHost);
+                logger.info("Extracting proxy settings from Jenkins " + proxySettings, Color.Purple);
+            } else {
+                logger.info("Ignored proxy settings from Jenkins, proxyEnabled " + proxyEnabled + ", settings "
+                            + (Jenkins.getInstance() != null && Jenkins.getInstance().proxy != null
+                                    ? Jenkins.getInstance().proxy.name : "N/A"),
+                        Color.Purple);
             }
+            //
+            if (ParamsAdapter.hasFile(workspaceDir, localArtifactsDir, binaryName, PLUGIN_NAME)) {
+                final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, localArtifactsDir, binaryName,
+                        breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password, showStatusMessages,
+                        stopTestsForStatusMessage, proxySettings, debug);
+                logger.info("****** Starting Local Execution with " + params + " ******\n", Color.Purple);
+
+                execute(listener, params, logger, true);
+            } else {
+                final ParamsAdapter params = new ParamsAdapter(this, token, workspaceDir, remoteArtifactsDir,
+                        binaryName, breakBuildOnScore, waitForResults, PLUGIN_NAME, username, password,
+                        showStatusMessages, stopTestsForStatusMessage, proxySettings, debug);
+                logger.info("****** Starting Remote Execution with " + params + " ******\n", Color.Purple);
+                Callable<Map<String, String>, IOException> task = new Callable<Map<String, String>, IOException>() {
+                    private static final long serialVersionUID = 1L;
+
+                    public Map<String, String> call() throws IOException {
+                        return execute(listener, params, logger, false);
+                    }
+
+                    @Override
+                    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+                    }
+                };
+                //
+                Map<String, String> artifacts = launcher.getChannel().call(task);
+                IOHelper helper = new IOHelper(PLUGIN_NAME, TIMEOUT);
+                for (Map.Entry<String, String> e : artifacts.entrySet()) {
+                    File path = new File(localArtifactsDir, e.getKey());
+                    helper.save(path, e.getValue());
+                }
+            }
+        } finally {
+            System.setProperty("hudson.remoting.ClassFilter", classFilter);
         }
     }
 

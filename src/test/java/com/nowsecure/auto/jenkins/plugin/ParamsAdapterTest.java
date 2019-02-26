@@ -276,4 +276,9 @@ public class ParamsAdapterTest implements NSAutoParameters {
         return new ProxySettings();
     }
 
+    @Override
+    public boolean isProxyEnabled() {
+        return false;
+    }
+
 }

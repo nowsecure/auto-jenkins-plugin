@@ -46,12 +46,13 @@ pipeline {
                 apiKey = credentials('AutoApiKey')
             }
             steps {
-                step([$class: 'NSAutoPlugin', apiKey: env.apiKey, binaryName: 'myapk.apk', breakBuildOnScore: true, description: 'my description', group: 'mygroup', waitForResults: true, showStatusMessages: true])
+                step([$class: 'NSAutoPlugin', apiKey: env.apiKey, binaryName: 'myapk.apk', breakBuildOnScore: true, description: 'my description', group: 'mygroup', waitForResults: true, showStatusMessages: true, debug: true, proxyEnabled: false])
             }
         }
     }
 }
 ```
+*** Note: proxyEnabled would use Jenkins' proxy settings if available ***
 
 ## Artifacts
 This plugin generates following artifacts:

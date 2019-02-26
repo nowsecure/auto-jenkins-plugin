@@ -152,6 +152,11 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     }
 
     @Override
+    public boolean isProxyEnabled() {
+        return delegateParams.isProxyEnabled();
+    }
+
+    @Override
     public int getScoreThreshold() {
         return breakBuildOnScore && waitForResults ? (delegateParams.getScoreThreshold() > 0
                 ? delegateParams.getScoreThreshold() : DEFAULT_SCORE_THRESHOLD) : 0;
