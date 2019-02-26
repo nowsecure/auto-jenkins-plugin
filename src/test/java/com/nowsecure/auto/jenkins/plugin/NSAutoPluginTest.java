@@ -64,7 +64,7 @@ public class NSAutoPluginTest {
         plugin.getProxySettings().setProxyServer("host");
         plugin.getProxySettings().setProxyPort(8080);
         plugin.getProxySettings().setUserName("user");
-        plugin.getProxySettings().setPassword("password");
+        plugin.getProxySettings().setProxyPass("password");
         plugin.getProxySettings().setNoProxyHost("localhost");
         Jenkins.XSTREAM2.marshal(plugin, writer);
         

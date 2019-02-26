@@ -15,7 +15,7 @@ import hudson.AbortException;
 
 public class ParamsAdapterTest implements NSAutoParameters {
     private String token = "token";
-    private String url = "url";
+    private String url = "https://lab-api.nowsecure.com";
     private File workspace = new File("/tmp");
     private File artifactsDir = new File("/tmp");
     private File file = new File("/tmp/test.apk");
@@ -41,7 +41,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, true, "pluginName", "bill",
                 "pass", true, "stop", new ProxySettings(), true);
         Assert.assertEquals("newToken", param.getApiKey());
-        Assert.assertEquals("url", param.getApiUrl());
+        Assert.assertNotNull(param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
         Assert.assertEquals("group", param.getGroup());
         Assert.assertEquals(dir, param.getArtifactsDir());
@@ -61,7 +61,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
                 username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), false);
 
         Assert.assertEquals("newToken", param.getApiKey());
-        Assert.assertEquals("url", param.getApiUrl());
+        Assert.assertNotNull(param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
         Assert.assertEquals("group", param.getGroup());
         Assert.assertEquals(dir, param.getArtifactsDir());
@@ -78,7 +78,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, true, "pluginName",
                 username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), true);
         Assert.assertEquals("newToken", param.getApiKey());
-        Assert.assertEquals("url", param.getApiUrl());
+        Assert.assertNotNull(param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
         Assert.assertEquals("group", param.getGroup());
         Assert.assertEquals(dir, param.getArtifactsDir());
@@ -93,7 +93,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, true, false, "pluginName",
                 username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), false);
         Assert.assertEquals("newToken", param.getApiKey());
-        Assert.assertEquals("url", param.getApiUrl());
+        Assert.assertNotNull(param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
         Assert.assertEquals("group", param.getGroup());
         Assert.assertEquals(dir, param.getArtifactsDir());
@@ -108,7 +108,7 @@ public class ParamsAdapterTest implements NSAutoParameters {
         ParamsAdapter param = new ParamsAdapter(this, "newToken", workspace, dir, ipa, false, false, "pluginName",
                 username, password, showStatusMessages, stopTestsForStatusMessage, new ProxySettings(), true);
         Assert.assertEquals("newToken", param.getApiKey());
-        Assert.assertEquals("url", param.getApiUrl());
+        Assert.assertNotNull(param.getApiUrl());
         Assert.assertEquals("desc", param.getDescription());
         Assert.assertEquals("group", param.getGroup());
         Assert.assertEquals(dir, param.getArtifactsDir());

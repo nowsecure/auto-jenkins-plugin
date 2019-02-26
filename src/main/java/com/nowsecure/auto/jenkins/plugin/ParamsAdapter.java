@@ -3,6 +3,8 @@ package com.nowsecure.auto.jenkins.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 
 import com.nowsecure.auto.domain.NSAutoParameters;
 import com.nowsecure.auto.domain.ProxySettings;
@@ -16,6 +18,7 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     private static final int DEFAULT_SCORE_THRESHOLD = 70;
     private static final int DEFAULT_WAIT_MINUTES = 30;
     private final NSAutoParameters delegateParams;
+    private final String apiUrl;
     private final String token;
     private final File workspace;
     private final File artifactsDir;
@@ -34,11 +37,12 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     public ParamsAdapter(NSAutoParameters delegateParams, String overrideApiKey, File workspace, File artifactsDir,
             String binaryName, boolean breakBuildOnScore, boolean waitForResults, String pluginName, String username,
             String password, boolean showStatusMessages, String stopTestsForStatusMessage, ProxySettings proxySettings,
-            boolean debug) throws AbortException {
+            boolean debug) throws AbortException, MalformedURLException, UnknownHostException {
         if (binaryName == null) {
             throw new AbortException("binaryName parameter not defined");
         }
-
+        //
+        this.apiUrl = delegateParams.getApiUrl();
         this.delegateParams = delegateParams;
         this.workspace = workspace;
         this.artifactsDir = artifactsDir;
@@ -66,7 +70,7 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
 
     @Override
     public String getApiUrl() {
-        return delegateParams.getApiUrl();
+        return apiUrl;
     }
 
     @Override

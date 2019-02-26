@@ -102,7 +102,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         @Override
         public void info(String msg, Color color) {
             if (color == null) {
-                color = Color.Black;
+                color = Color.Cyan;
             }
             listener.getLogger().println(color.format("INFO " + new Date() + "@" + IOHelper.getLocalHost() + ":"
                                                       + PLUGIN_NAME + "-v" + IOHelper.getVersion() + " " + msg));
@@ -346,7 +346,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             proxySettings.setProxyServer(proxy.name);
             proxySettings.setProxyPort(proxy.port);
             proxySettings.setUserName(proxy.getUserName());
-            proxySettings.setPassword(proxy.getPassword());
+            proxySettings.setProxyPass(proxy.getPassword());
             proxySettings.setNoProxyHost(proxy.noProxyHost);
         }
         //
