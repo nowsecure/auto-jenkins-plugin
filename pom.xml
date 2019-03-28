@@ -68,14 +68,14 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/version.txt</include>
+                    <include>**/jversion.txt</include>
                 </includes>
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
                 <excludes>
-                    <exclude>**/version.txt</exclude>
+                    <exclude>**/jversion.txt</exclude>
                 </excludes>
             </resource>
         </resources>

@@ -3,11 +3,9 @@ package com.nowsecure.auto.jenkins.plugin;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Map;
 
