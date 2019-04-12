@@ -84,9 +84,9 @@
         <dependency>
             <groupId>com.nowsecure</groupId>
             <artifactId>auto-circleci-plugin</artifactId>
-            <version>1.0.5</version>
+            <version>1.0.7</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/auto-circleci-plugin-1.0.5.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/auto-circleci-plugin-1.0.7.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
