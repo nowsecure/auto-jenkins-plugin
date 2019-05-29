@@ -352,6 +352,13 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final NSAutoLogger logger = new Logger(listener, debug);
             final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
             final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
+            if (debug) {
+                if (token != null) {
+                    logger.info("Using API token from runtime environment: " + token, Color.Purple);
+                } else {
+                    logger.info("Using API token from bind variable: " + apiKey, Color.Purple);
+                }
+            }
             //
             if (proxyEnabled && Jenkins.getInstance() != null && Jenkins.getInstance().proxy != null) {
                 final ProxyConfiguration proxy = Jenkins.getInstance().proxy;
