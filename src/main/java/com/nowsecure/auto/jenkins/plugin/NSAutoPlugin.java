@@ -433,16 +433,19 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
     }
 
-    @Symbol({ "apiKey", "apiUrl", "binaryName" })
+    @Symbol({ "apiKey", "apiUrl", "binaryName", "group" })
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         public FormValidation doValidateParams(@QueryParameter("apiKey") String apiKey,
                 @QueryParameter("apiUrl") String apiUrl, @QueryParameter("binaryName") final String binaryName,
-                @SuppressWarnings("rawtypes") @AncestorInPath AbstractProject project,
+                @QueryParameter("group") String group, @SuppressWarnings("rawtypes") @AncestorInPath AbstractProject project,
                 @AncestorInPath final Job<?, ?> owner)
                 throws MessagingException, IOException, JSONException, ServletException {
             if (binaryName == null || binaryName.isEmpty()) {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingBinary());
+            }
+            if (group == null || group .isEmpty()) {
+                return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingGroup());
             }
             if (apiKey != null) {
                 if (apiUrl == null || apiUrl.isEmpty()) {

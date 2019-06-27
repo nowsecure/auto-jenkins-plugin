@@ -67,7 +67,7 @@ public class NSAutoPluginTest {
         plugin.getProxySettings().setProxyPass("password");
         plugin.getProxySettings().setNoProxyHost("localhost");
         Jenkins.XSTREAM2.marshal(plugin, writer);
-        
+
         XStream2 xs = new XStream2();
         XStreamDOM dom = XStreamDOM.from(xs, plugin);
         dom.unmarshal(xs);

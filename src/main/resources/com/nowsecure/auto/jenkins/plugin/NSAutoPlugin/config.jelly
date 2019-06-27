@@ -10,6 +10,9 @@
 		<f:entry title="${%binaryName}" field="binaryName">
 			<f:textbox field="binaryName" />
 		</f:entry>
+        <f:entry title="${%group}" field="group">
+            <f:textbox field="group" />
+        </f:entry>
 
 		<f:advanced>
 			<f:entry title="${%description}" field="description">
@@ -18,10 +21,6 @@
 
 			<f:entry title="${%apiUrl}" field="apiUrl">
 				<f:textbox field="apiUrl" default="https://lab-api.nowsecure.com" />
-			</f:entry>
-
-			<f:entry title="${%group}" field="group">
-				<f:textbox field="group" />
 			</f:entry>
 
 			<f:entry title="${%waitForResults}" field="waitForResults">
@@ -60,6 +59,10 @@
 				<f:checkbox field="showStatusMessages" />
 			</f:entry>
 		</f:advanced>
+		<f:entry title="${%note}">
+			<p>${%requiredFields} </p>
+		</f:entry>
 	</f:section>
+
 
 </j:jelly>

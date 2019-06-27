@@ -52,6 +52,8 @@ pipeline {
     }
 }
 ```
+*** Note: The apiKey will retreive credentials from Jenkins; binaryName and group are required fields but other parameters such as breakBuildOnScore, waitForResults and showStatusMessages are optional parameters.
+
 *** Note: proxyEnabled would use Jenkins' proxy settings if available ***
 
 ## Artifacts

@@ -61,6 +61,9 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
         if (this.token == null || this.token.trim().isEmpty()) {
             throw new AbortException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingKey());
         }
+        if (delegateParams.getGroup() == null || delegateParams.getGroup().trim().isEmpty()) {
+            throw new AbortException(Messages.NSAutoPlugin_DescriptorImpl_errors_missingGroup());
+        }
     }
 
     @Override
