@@ -418,7 +418,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             params.getFile();
             NSAutoGateway gw = new NSAutoGateway(params, logger, new IOHelper(PLUGIN_NAME, TIMEOUT));
             gw.execute(master);
-            return gw.getArtifactContents(true);
+            return gw.getArtifactContents(false); //!master);
         } catch (IOException e) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(bos, true, "UTF-8"));
