@@ -1,22 +1,26 @@
 package com.nowsecure.auto.jenkins.plugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.SortedMap;
 
+import org.acegisecurity.AccessDeniedException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.SingleValueConverterWrapper;
 import com.thoughtworks.xstream.converters.basic.IntConverter;
 import com.thoughtworks.xstream.converters.basic.StringConverter;
 import com.thoughtworks.xstream.converters.collections.ArrayConverter;
-import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;
 import com.thoughtworks.xstream.converters.reflection.ReflectionConverter;
 import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 import com.thoughtworks.xstream.converters.reflection.SunUnsafeReflectionProvider;
 import com.thoughtworks.xstream.core.ClassLoaderReference;
 import com.thoughtworks.xstream.core.DefaultConverterLookup;
-import com.thoughtworks.xstream.core.TreeMarshaller;
 import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.json.JsonWriter;
@@ -25,7 +29,10 @@ import com.thoughtworks.xstream.mapper.ClassAliasingMapper;
 import com.thoughtworks.xstream.mapper.DefaultMapper;
 import com.thoughtworks.xstream.mapper.Mapper;
 
-import hudson.util.RobustReflectionConverter;
+import hudson.model.Item;
+import hudson.model.ItemGroup;
+import hudson.model.Job;
+import hudson.model.Run;
 import hudson.util.XStream2;
 import jenkins.model.Jenkins;
 import jenkins.util.xstream.XStreamDOM;
@@ -56,6 +63,94 @@ public class NSAutoPluginTest {
 
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
+    public void testNormalize() throws Exception {
+        ItemGroup group = new ItemGroup() {
+
+            @Override
+            public File getRootDir() {
+                return new File(".");
+            }
+
+            @Override
+            public void save() throws IOException {
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "";
+            }
+
+            @Override
+            public String getFullName() {
+                return "";
+            }
+
+            @Override
+            public String getFullDisplayName() {
+                return "";
+            }
+
+            @Override
+            public Collection getItems() {
+                return Arrays.asList();
+            }
+
+            @Override
+            public String getUrl() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public String getUrlChildPrefix() {
+                return "";
+            }
+
+            @Override
+            public Item getItem(String name) throws AccessDeniedException {
+                return null;
+            }
+
+            @Override
+            public File getRootDirFor(Item child) {
+                return new File(".");
+            }
+
+            @Override
+            public void onRenamed(Item item, String oldName, String newName) throws IOException {
+
+            }
+
+            @Override
+            public void onDeleted(Item item) throws IOException {
+            }
+        };
+        Job job = new Job(group, "name") {
+
+            @Override
+            public boolean isBuildable() {
+                return false;
+            }
+
+            @Override
+            protected SortedMap _getRuns() {
+                return null;
+            }
+
+            @Override
+            protected void removeRun(Run run) {
+            }
+        };
+        Run run = new Run(job) {
+        };
+        Assert.assertNull(NSAutoPlugin.normalize(run, null));
+        Assert.assertEquals("test", NSAutoPlugin.normalize(run, "test"));
+        Assert.assertNotEquals("${HOME}", NSAutoPlugin.normalize(run, "${HOME}"));
+        Assert.assertEquals("${test}", NSAutoPlugin.normalize(run, "${test}"));
+    }
+
     @Test
     public void testSerialize() throws Exception {
         HierarchicalStreamWriter writer = new JsonWriter(new StringWriter());
@@ -76,7 +171,7 @@ public class NSAutoPluginTest {
         // RobustReflectionConverter(mapper, new PureJavaReflectionProvider());
         // MarshallingContext context = new TreeMarshaller(writer,
         // converterLookup, mapper);
-        //converter.marshal(plugin, writer, context);
+        // converter.marshal(plugin, writer, context);
 
         // ObjectOutputStream out = new ObjectOutputStream(new
         // ByteArrayOutputStream());

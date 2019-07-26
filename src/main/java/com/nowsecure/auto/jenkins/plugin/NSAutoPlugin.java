@@ -340,6 +340,28 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     }
 
     @SuppressWarnings("deprecation")
+    static String normalize(final Run<?, ?> run, String value) {
+        if (value == null) {
+            return value;
+        }
+        if (value.startsWith("${") && value.endsWith("}")) {
+            String name = value.substring(2, value.length() - 1);
+            String newValue = System.getenv(name);
+            if (newValue == null) {
+                try {
+                    return run.getEnvironment().get(name);
+                } catch (Exception e) {
+                    return value;
+                }
+            } else {
+                return newValue;
+            }
+        } else {
+            return value;
+        }
+    }
+
+    @SuppressWarnings("deprecation")
     @Override
     @POST
     public void perform(final Run<?, ?> run, final FilePath workspace, final Launcher launcher,
@@ -352,6 +374,11 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final NSAutoLogger logger = new Logger(listener, debug);
             final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
             final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
+
+            binaryName = normalize(run, binaryName);
+            username = normalize(run, username);
+            password = normalize(run, password);
+
             if (debug) {
                 if (token != null) {
                     logger.info("Using API token from runtime environment: " + token, Color.Purple);
@@ -418,7 +445,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             params.getFile();
             NSAutoGateway gw = new NSAutoGateway(params, logger, new IOHelper(PLUGIN_NAME, TIMEOUT));
             gw.execute(master);
-            return gw.getArtifactContents(false); //!master);
+            return gw.getArtifactContents(false); // !master);
         } catch (IOException e) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(bos, true, "UTF-8"));
@@ -438,13 +465,14 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         public FormValidation doValidateParams(@QueryParameter("apiKey") String apiKey,
                 @QueryParameter("apiUrl") String apiUrl, @QueryParameter("binaryName") final String binaryName,
-                @QueryParameter("group") String group, @SuppressWarnings("rawtypes") @AncestorInPath AbstractProject project,
+                @QueryParameter("group") String group,
+                @SuppressWarnings("rawtypes") @AncestorInPath AbstractProject project,
                 @AncestorInPath final Job<?, ?> owner)
                 throws MessagingException, IOException, JSONException, ServletException {
             if (binaryName == null || binaryName.isEmpty()) {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingBinary());
             }
-            if (group == null || group .isEmpty()) {
+            if (group == null || group.isEmpty()) {
                 return FormValidation.errorWithMarkup(Messages.NSAutoPlugin_DescriptorImpl_errors_missingGroup());
             }
             if (apiKey != null) {
