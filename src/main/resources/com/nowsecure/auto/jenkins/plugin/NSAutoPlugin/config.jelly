@@ -23,6 +23,10 @@
 				<f:textbox field="apiUrl" default="https://lab-api.nowsecure.com" />
 			</f:entry>
 
+			<f:entry title="${%artifactsDir}" field="artifactsDir">
+				<f:textbox field="artifactsDir" default="" />
+			</f:entry>
+
 			<f:entry title="${%waitForResults}" field="waitForResults">
 				<f:checkbox field="waitForResults" />
 			</f:entry>

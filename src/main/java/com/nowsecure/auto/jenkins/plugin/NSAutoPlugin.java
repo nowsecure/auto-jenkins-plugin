@@ -76,6 +76,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private String password;
     private boolean showStatusMessages;
     private String stopTestsForStatusMessage;
+    private String artifactsDir;
     private ProxySettings proxySettings = new ProxySettings();
     private boolean debug;
     private boolean proxyEnabled;
@@ -266,7 +267,26 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
     @Override
     public File getArtifactsDir() {
-        throw new UnsupportedOperationException("getArtifactsDir not supported");
+        if (hasArtifactsDir()) {
+            return new File(artifactsDir.trim());
+        }
+        return null;
+    }
+
+    public boolean hasArtifactsDir() {
+        return artifactsDir != null && artifactsDir.trim().length() > 0;
+    }
+
+    public String getArtifactsDirPrefix() {
+        if (hasArtifactsDir()) {
+            return artifactsDir.trim() + System.getProperty("file.separator");
+        }
+        return "";
+    }
+
+    @DataBoundSetter
+    public void setArtifactsDir(String dir) {
+        this.artifactsDir = dir;
     }
 
     @Override
@@ -372,8 +392,9 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final File workspaceDir = new File(workspace.getRemote());
             final String token = run.getEnvironment().get("apiKey");
             final NSAutoLogger logger = new Logger(listener, debug);
-            final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR);
-            final File remoteArtifactsDir = new File(NSAUTO_JENKINS + run.getQueueId());
+            final File localArtifactsDir = new File(hasArtifactsDir() ? getArtifactsDir() : run.getArtifactsDir(),
+                    NS_REPORTS_DIR + run.getQueueId());
+            final File remoteArtifactsDir = new File(getArtifactsDirPrefix() + NSAUTO_JENKINS + run.getQueueId());
 
             binaryName = normalize(run, binaryName);
             username = normalize(run, username);
@@ -460,12 +481,12 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
     }
 
-    @Symbol({ "apiKey", "apiUrl", "binaryName", "group" })
+    @Symbol({ "apiKey", "apiUrl", "binaryName", "group", "artifactsDir" })
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         public FormValidation doValidateParams(@QueryParameter("apiKey") String apiKey,
                 @QueryParameter("apiUrl") String apiUrl, @QueryParameter("binaryName") final String binaryName,
-                @QueryParameter("group") String group,
+                @QueryParameter("group") String group, @QueryParameter("artifactsDir") String artifactsDir,
                 @SuppressWarnings("rawtypes") @AncestorInPath AbstractProject project,
                 @AncestorInPath final Job<?, ?> owner)
                 throws MessagingException, IOException, JSONException, ServletException {
