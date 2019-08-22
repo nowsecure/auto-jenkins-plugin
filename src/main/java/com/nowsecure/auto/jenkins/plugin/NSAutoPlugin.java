@@ -392,8 +392,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
             final File workspaceDir = new File(workspace.getRemote());
             final String token = run.getEnvironment().get("apiKey");
             final NSAutoLogger logger = new Logger(listener, debug);
-            final File localArtifactsDir = new File(hasArtifactsDir() ? getArtifactsDir() : run.getArtifactsDir(),
-                    NS_REPORTS_DIR + run.getQueueId());
+            final File localArtifactsDir = new File(run.getArtifactsDir(), NS_REPORTS_DIR + run.getQueueId());
             final File remoteArtifactsDir = new File(getArtifactsDirPrefix() + NSAUTO_JENKINS + run.getQueueId());
 
             binaryName = normalize(run, binaryName);
