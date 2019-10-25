@@ -80,6 +80,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     private ProxySettings proxySettings = new ProxySettings();
     private boolean debug;
     private boolean proxyEnabled;
+    private Boolean validateDnsUrlConnection = true;
 
     private static class Logger implements NSAutoLogger, Serializable {
         private static final long serialVersionUID = 1L;
@@ -130,7 +131,8 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
 
     @DataBoundConstructor
     public NSAutoPlugin(String apiUrl, String group, String binaryName, String description, boolean waitForResults,
-            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold, String apiKey, boolean useBuildEndpoint) {
+            int waitMinutes, boolean breakBuildOnScore, int scoreThreshold, String apiKey, boolean useBuildEndpoint,
+            boolean validateDnsUrlConnection) {
         this.apiUrl = apiUrl;
         this.group = group;
         this.binaryName = binaryName;
@@ -141,6 +143,7 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
         this.scoreThreshold = scoreThreshold;
         this.apiKey = apiKey;
         this.useBuildEndpoint = useBuildEndpoint;
+        this.validateDnsUrlConnection = validateDnsUrlConnection;
     }
 
     /*
@@ -357,6 +360,19 @@ public class NSAutoPlugin extends Builder implements SimpleBuildStep, NSAutoPara
     @DataBoundSetter
     public void setProxyEnabled(boolean proxyEnabled) {
         this.proxyEnabled = proxyEnabled;
+    }
+
+    @Override
+    public boolean isValidateDnsUrlConnectionEnabled() {
+        if (validateDnsUrlConnection == null) {
+            validateDnsUrlConnection = true;
+        }
+        return validateDnsUrlConnection;
+    }
+
+    @DataBoundSetter
+    public void setValidateDnsUrlConnectionEnabled(boolean validateDnsUrlConnection) {
+        this.validateDnsUrlConnection = validateDnsUrlConnection;
     }
 
     @SuppressWarnings("deprecation")

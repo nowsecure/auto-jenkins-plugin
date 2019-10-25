@@ -87,6 +87,11 @@ public class ParamsAdapter implements NSAutoParameters, Serializable {
     }
 
     @Override
+    public boolean isValidateDnsUrlConnectionEnabled() {
+        return delegateParams.isValidateDnsUrlConnectionEnabled();
+    }
+
+    @Override
     public File getFile() {
         return getFile(workspace, artifactsDir, binaryName, pluginName);
     }

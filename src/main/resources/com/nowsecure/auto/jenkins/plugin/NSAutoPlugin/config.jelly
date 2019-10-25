@@ -62,6 +62,11 @@
 			<f:entry title="${%showStatusMessages}" field="showStatusMessages">
 				<f:checkbox field="showStatusMessages" />
 			</f:entry>
+
+			<f:entry title="${%validateDnsUrlConnectionEnabled}" field="validateDnsUrlConnectionEnabled">
+				<f:checkbox field="validateDnsUrlConnectionEnabled" />
+			</f:entry>
+
 		</f:advanced>
 		<f:entry title="${%note}">
 			<p>${%requiredFields} </p>

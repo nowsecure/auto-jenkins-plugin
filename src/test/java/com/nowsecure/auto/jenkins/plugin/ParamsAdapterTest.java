@@ -281,4 +281,9 @@ public class ParamsAdapterTest implements NSAutoParameters {
         return false;
     }
 
+    @Override
+    public boolean isValidateDnsUrlConnectionEnabled() {
+        return false;
+    }
+
 }

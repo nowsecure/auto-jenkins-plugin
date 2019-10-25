@@ -154,7 +154,7 @@ public class NSAutoPluginTest {
     @Test
     public void testSerialize() throws Exception {
         HierarchicalStreamWriter writer = new JsonWriter(new StringWriter());
-        NSAutoPlugin plugin = new NSAutoPlugin("api", "group", "binary", "desc", true, 30, true, 75, "key", true);
+        NSAutoPlugin plugin = new NSAutoPlugin("api", "group", "binary", "desc", true, 30, true, 75, "key", true, true);
         Jenkins.XSTREAM2.marshal(plugin, writer);
         plugin.getProxySettings().setProxyServer("host");
         plugin.getProxySettings().setProxyPort(8080);
