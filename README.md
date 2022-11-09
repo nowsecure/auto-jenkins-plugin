@@ -25,7 +25,7 @@ Then redeploy Jenkins.
 ## Deploying
 
 ### Generate API Key
-See https://docs.nowsecure.com/auto/integration-services/jenkins-integration for adding API token.
+See https://support.nowsecure.com/hc/en-us/articles/9999367921421-Jenkins-Platform-Integration for adding API token.
 
 ### Store API Key in Jenkins Credentials
 Select Credentials from sideline:
