@@ -2,7 +2,7 @@
 
 ### Deprecation Notice
 
-This Extension has been deprecated.  NowSecure strongly recommends migrating to the updated NowSecurec Jenkins Plugin which can be found in the [JenkinsCI Organization's GitHub](https://github.com/jenkinsci/nowsecure-ci-assessments-plugin).
+This Extension has been deprecated.  NowSecure strongly recommends migrating to the updated NowSecure Jenkins Plugin which can be found in the [JenkinsCI Organization's GitHub](https://github.com/jenkinsci/nowsecure-ci-assessments-plugin).
 
 Migration to the new extension is straightforward:
 
