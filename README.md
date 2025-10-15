@@ -1,5 +1,18 @@
 # NowSecure Auto Jenkins Plugin
 
+### Deprecation Notice
+
+This Extension has been deprecated.  NowSecure strongly recommends migrating to the updated NowSecurec Jenkins Plugin which can be found in the [JenkinsCI Organization's GitHub](https://github.com/jenkinsci/nowsecure-ci-assessments-plugin).
+
+Migration to the new extension is straightforward:
+
+1. Install the new `NowSecure CI Assessments` plugin from the Jenkins Plugin Manager
+2. Review the parameters for the new extension taking care to evaluate the updated default values of parameters to ensure the meet your requirements.
+
+Take note of `analysis_type` which is a new parameter. This parameter allows you to run static only or full assessments.
+
+## Overview
+
 This plugin provides the ability to send Android or iOS applications to NowSecure Auto for Mobile Application Security Testing (aka MAST)
 
 Documentation for 
