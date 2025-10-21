@@ -2,9 +2,17 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 	<f:section title="${%title}">
+		<f:entry title="">
+			<p>Please define API Key using Credentials link on side bar, then
+				bind that value with apiKey variable.
+			</p>
+		</f:entry>
 		<f:entry title="${%binaryName}" field="binaryName">
 			<f:textbox field="binaryName" />
 		</f:entry>
+        <f:entry title="${%group}" field="group">
+            <f:textbox field="group" />
+        </f:entry>
 
 		<f:advanced>
 			<f:entry title="${%description}" field="description">
@@ -12,11 +20,11 @@
 			</f:entry>
 
 			<f:entry title="${%apiUrl}" field="apiUrl">
-				<f:textbox field="apiUrl" />
+				<f:textbox field="apiUrl" default="https://lab-api.nowsecure.com" />
 			</f:entry>
 
-			<f:entry title="${%group}" field="group">
-				<f:textbox field="group" />
+			<f:entry title="${%artifactsDir}" field="artifactsDir">
+				<f:textbox field="artifactsDir" default="" />
 			</f:entry>
 
 			<f:entry title="${%waitForResults}" field="waitForResults">
@@ -24,7 +32,7 @@
 			</f:entry>
 
 			<f:entry title="${%waitMinutes}" field="waitMinutes">
-				<select name="waitMinutes">
+				<select name="waitMinutes" default="30">
 					<option value="5"
 						selected="${instance.waitMinutes.equals(5)? 'true':null}">5 Minutes</option>
 					<option value="10"
@@ -36,7 +44,7 @@
 					<option value="25"
 						selected="${instance.waitMinutes.equals(25)? 'true':null}">25 Minutes</option>
 					<option value="30"
-						selected="${instance.waitMinutes.equals(30)? 'true':null}">30 Minutes</option>
+						selected="${instance.waitMinutes.equals(0) || instance.waitMinutes.equals(30)? 'true':null}">30 Minutes</option>
 					<option value="60"
 						selected="${instance.waitMinutes.equals(60)? 'true':null}">1 Hour</option>
 					<option value="120"
@@ -51,7 +59,19 @@
 			<f:entry title="${%scoreThreshold}" field="scoreThreshold">
 				<f:textbox field="scoreThreshold" />
 			</f:entry>
+			<f:entry title="${%showStatusMessages}" field="showStatusMessages">
+				<f:checkbox field="showStatusMessages" />
+			</f:entry>
+
+			<f:entry title="${%validateDnsUrlConnectionEnabled}" field="validateDnsUrlConnectionEnabled">
+				<f:checkbox field="validateDnsUrlConnectionEnabled" />
+			</f:entry>
+
 		</f:advanced>
+		<f:entry title="${%note}">
+			<p>${%requiredFields} </p>
+		</f:entry>
 	</f:section>
+
 
 </j:jelly>

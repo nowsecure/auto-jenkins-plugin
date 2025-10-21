@@ -18,60 +18,9 @@ This plugin provides the ability to send Android or iOS applications to NowSecur
 Documentation for 
 
 
-## Building
-```
-mvn hpi:run
-```
+This plugin adds the ability to perform automatic mobile app security testing for Android and iOS mobile apps through the NowSecure AUTO test engine.
 
-## Findbugs
-```
-mvn findbugs:gui
-```
-
-## Installing
-```
-mvn clean install
-cp target/nowsecure-auto-security-test.hpi ~/.jenkins/plugins/
-```
-Then redeploy Jenkins.
-
-## Deploying
-
-### Generate API Key
-See https://docs.nowsecure.com/auto/integration-services/jenkins-integration for adding API token.
-
-### Store API Key in Jenkins Credentials
-Select Credentials from sideline:
-![Credentials](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins3.png)
-
-Store API Key as Secret text:
-![StoreCredentials](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins4.png)
-
-### Define Jenkins Job
-![New Build](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins1.png)
-
-### Bind Credentials with apiKey variable
-![Bind](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins5.png)
-
-### Adding Plugin to your mobile build
-Select Configure option from Jenkins console, then select dropdown of build step and choose NS Auto Jenkins Plugin, e.g.
-![Build Step](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins6.png)
-
-### Specify configuration parameters
-![Configure Step](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins7.png)
-
-## Advanced configuration options
-![Advanced](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins8.png)
-
-## Kick off build
-Kick off your mobile builds and you will see the raw JSON reports and score under artifacts folder.
-![Console](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins9.png)
-
-## Pipeline
-Adding plugin to pipeline:
-![Pipeline](https://github.com/nowsecure/auto-jenkins-plugin/blob/master/images/jenkins10.png)
-
-## Resources
-- https://wiki.jenkins.io/display/JENKINS/Credentials+Plugin
-
+## Summary:
+Purpose-built for mobile app teams, NowSecure AUTO provides fully automated, mobile appsec testing coverage (static+dynamic+behavioral tests) optimized for the dev pipeline. Because NowSecure tests the mobile app binary post-build from Jenkins, it can test software developed in any language and provides complete results including newly developed code, 3rd party code, and compiler/operating system dependencies. With near zero false positives, NowSecure pinpoints real issues in minutes, with developer fix details, and routes tickets automatically into ticketing systems, such as Jira. NowSecure is frequently used to perform security testing in parallel with functional testing in the dev cycle. Requires a license for and connection to the NowSecure AUTO software.
+ https://www.nowsecure.com
 
